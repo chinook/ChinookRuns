@@ -8,5 +8,5 @@ contextBridge.exposeInMainWorld('api', {
     modifierCourse: (id, champs) => ipcRenderer.invoke('courses:modifier', id, champs),
     supprimerCourse: (id) => ipcRenderer.invoke('courses:supprimer', id),
     listeTables: () => ipcRenderer.invoke('db:tables'),
-    lignesTable: (nom, limite, decalage) => ipcRenderer.invoke('db:lignes', nom, limite, decalage),
+    lignesTable: (nom, limite, decalage, recherche) => ipcRenderer.invoke('db:lignes', nom, limite, decalage, recherche),
 });

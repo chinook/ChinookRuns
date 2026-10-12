@@ -11,9 +11,11 @@
 <body>
 
 <nav class="nav" id="nav">
+  <button class="logo-lien" data-page="home" type="button" title="Accueil" aria-label="Retour à l'accueil">
+    <img class="logo-nav" src="img/chinook_ets_black.png" alt="Logo Chinook">
+  </button>
   <span class="brand">ChinookRuns</span>
   <button class="btn" data-page="home" type="button">Accueil</button>
-  <button class="btn" data-page="importer" type="button">Importer</button>
   <button class="btn" data-page="base" type="button">Base de données</button>
   <button class="btn" data-page="visualiser" type="button">Visualiser une course</button>
   <button class="btn" data-page="live" type="button">LIVE<span class="tag">bientôt</span></button>
@@ -41,8 +43,8 @@
     </div>
   </section>
 
-  <!-- ============ IMPORTER ============ -->
-  <section class="page" id="page-importer">
+  <!-- ============ BASE DE DONNÉES ============ -->
+  <section class="page" id="page-base">
     <details class="card" open>
       <summary>Importer dans la base</summary>
       <div class="body">
@@ -50,19 +52,19 @@
           <input type="file" id="importFiles" accept=".csv,.xlsx,.xls,.txt" multiple>
           Date <input type="date" id="importDate">
           Lieu <input type="text" id="importLieu" placeholder="Gaspésie">
+          Notes <input type="text" id="importNotes" placeholder="Conditions, remarques…">
           <button class="btn primary" id="importBtn" type="button">Importer</button>
         </div>
         <pre id="importLog"></pre>
       </div>
     </details>
-  </section>
-
-  <!-- ============ BASE DE DONNÉES ============ -->
-  <section class="page" id="page-base">
-    <details class="card" open>
-      <summary>Explorateur de la base</summary>
+    <div class="card fixe">
+      <h2 class="card-titre">Explorateur de la base</h2>
       <div class="body">
         <div class="row" id="dbTables"></div>
+        <div class="row">
+          <input type="search" id="dbSearch" placeholder="Rechercher dans la table…" autocomplete="off">
+        </div>
         <div id="dbGrid"></div>
         <div class="row" style="margin-top:8px">
           <button class="btn" id="dbPrev" type="button">◀ Précédent</button>
@@ -71,7 +73,7 @@
           <span id="dbInfo"></span>
         </div>
       </div>
-    </details>
+    </div>
   </section>
 
   <!-- ============ VISUALISER ============ -->
@@ -85,7 +87,6 @@
         <span id="fname"></span>
         <button class="btn" id="expandAll" type="button">Tout ouvrir</button>
         <button class="btn" id="collapseAll" type="button">Tout réduire</button>
-        <button class="btn primary" id="pick" type="button">Changer de fichier</button>
       </div>
     </header>
 
@@ -95,12 +96,19 @@
     
     <details class="card" open>
       <summary>Courses enregistrées</summary>
-      <div class="body"><div id="listeCourses"></div></div>
+      <div class="body">
+        <div class="row">
+          <input type="search" id="courseSearch" placeholder="Rechercher une course (nom, date, lieu, notes)…" autocomplete="off">
+          <span id="courseInfo"></span>
+        </div>
+        <div id="listeCourses"></div>
+      </div>
     </details>
 
 
 
     <div id="out" class="hide">
+      <div id="notesCourse" class="notes-course hide"></div>
       <details class="card" open><summary>Résumé</summary><div class="body"><div class="stats" id="stats"></div></div></details>
       <details class="card" open><summary>Diagnostic de l'acquisition<span class="hint" id="findHint"></span></summary><div class="body"><div id="findings"></div></div></details>
       <details class="card" open data-plot="timeline"><summary>Évolution dans le temps</summary><div class="body">

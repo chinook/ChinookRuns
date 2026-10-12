@@ -56,7 +56,7 @@ function creerCourse(nom) {
     return Number(resultat.lastInsertRowid);
 }
 
-function importerCourse({ nom, date, lieu, fichierSource, entetes, colTemps, lignes }) {
+function importerCourse({ nom, date, lieu, notes, fichierSource, entetes, colTemps, lignes }) {
     const existe = db
         .prepare('SELECT id FROM courses WHERE fichier_source = ? AND date IS ?')
         .get(fichierSource, date);
@@ -65,8 +65,8 @@ function importerCourse({ nom, date, lieu, fichierSource, entetes, colTemps, lig
     const importer = db.transaction(() => {
         const idCourse = Number(
             db.prepare(
-                'INSERT INTO courses (nom, date, lieu, fichier_source, date_import) VALUES (?, ?, ?, ?, ?)'
-            ).run(nom, date, lieu, fichierSource, new Date().toISOString()).lastInsertRowid
+                'INSERT INTO courses (nom, date, lieu, notes, fichier_source, date_import) VALUES (?, ?, ?, ?, ?, ?)'
+            ).run(nom, date, lieu, notes ?? null, fichierSource, new Date().toISOString()).lastInsertRowid
         );
 
         const insCanal = db.prepare('INSERT INTO canaux (course_id, nom) VALUES (?, ?)');
@@ -103,11 +103,37 @@ function listeTables() {
     }));
 }
 
-function lignesTable(nom, limite, decalage) {
+const SOURCES = {
+    canaux: `SELECT k.id, k.course_id, c.nom AS course, k.nom
+             FROM canaux k JOIN courses c ON c.id = k.course_id`,
+    echantillons: `SELECT e.course_id, c.nom AS course, e.canal_id, k.nom AS canal, e.n, e.t, e.valeur
+                   FROM echantillons e
+                   JOIN courses c ON c.id = e.course_id
+                   JOIN canaux k ON k.id = e.canal_id`,
+};
+
+function lignesTable(nom, limite, decalage, recherche) {
     if (!nomsTables().includes(nom)) throw new Error('Table inconnue : ' + nom);
     const lim = Math.min(Number(limite) || 100, 1000);
     const dec = Math.max(Number(decalage) || 0, 0);
-    return db.prepare(`SELECT * FROM "${nom}" LIMIT ? OFFSET ?`).all(lim, dec);
+    const source = SOURCES[nom] || `SELECT * FROM "${nom}"`;
+    const terme = String(recherche || '').trim();
+
+    if (!terme) {
+        const total = db.prepare(`SELECT COUNT(*) AS n FROM "${nom}"`).get().n;
+        const lignes = db.prepare(`SELECT * FROM (${source}) LIMIT ? OFFSET ?`).all(lim, dec);
+        return { lignes, total };
+    }
+
+    const colonnes = db.prepare(`SELECT * FROM (${source}) LIMIT 0`).columns().map(c => c.name);
+    const filtre = colonnes.map(c => `CAST("${c}" AS TEXT) LIKE ? ESCAPE '\\'`).join(' OR ');
+    const motif = '%' + terme.replace(/[\\%_]/g, '\\$&') + '%';
+    const params = colonnes.map(() => motif);
+
+    const total = db.prepare(`SELECT COUNT(*) AS n FROM (${source}) WHERE ${filtre}`).get(...params).n;
+    const lignes = db.prepare(`SELECT * FROM (${source}) WHERE ${filtre} LIMIT ? OFFSET ?`)
+        .all(...params, lim, dec);
+    return { lignes, total };
 }
 
 function donneesCourse(id) {
@@ -131,9 +157,9 @@ function donneesCourse(id) {
     return { entetes: ['temps_s', ...canaux.map(c => c.nom)], lignes };
 }
 
-function modifierCourse(id, { nom, date, lieu }) {
-    return db.prepare('UPDATE courses SET nom = ?, date = ?, lieu = ? WHERE id = ?')
-        .run(nom, date, lieu, id).changes;
+function modifierCourse(id, { nom, date, lieu, notes }) {
+    return db.prepare('UPDATE courses SET nom = ?, date = ?, lieu = ?, notes = ? WHERE id = ?')
+        .run(nom, date, lieu, notes ?? null, id).changes;
 }
 
 function supprimerCourse(id) {

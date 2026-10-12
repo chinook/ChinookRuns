@@ -96,4 +96,24 @@ select{background:var(--card);color:var(--ink);border:1px solid var(--line);bord
 /* ---------- Live ---------- */
 .live{text-align:center;padding:60px 16px;color:var(--muted)}
 .live h1{color:var(--ink);font-size:34px}
+#dbGrid{overflow:auto;height:calc(100vh - 320px);min-height:320px;border:1px solid var(--line);border-radius:6px}
+.card.fixe>.card-titre{margin:0;padding:14px 16px;font-size:17px;font-weight:600}
+#dbSearch{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit;flex:1;min-width:240px;max-width:520px}
+/* ---------- Logo de la barre de navigation ---------- */
+.logo-nav{height:34px;width:auto;display:block;margin-right:4px;user-select:none;-webkit-user-drag:none}
+.logo-lien{display:flex;align-items:center;background:none;border:0;padding:0;margin-right:4px;border-radius:6px;cursor:pointer}
+.logo-lien:hover{opacity:.7}
+.logo-lien:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.logo-lien .logo-nav{margin-right:0}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .logo-nav{filter:invert(1)}
+}
+/* ---------- Notes des courses ---------- */
+#listeCourses td.notes-cell{max-width:360px;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+#listeCourses textarea{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:inherit;width:320px;min-height:56px;resize:vertical;white-space:pre-wrap}
+#importNotes{flex:1;min-width:220px}
+#courseSearch{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit;flex:1;min-width:240px;max-width:520px}
+#courseInfo{font-size:13px;color:var(--muted)}
+.notes-course{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px}
+
 @media(max-width:600px){.stat .v{font-size:18px}}

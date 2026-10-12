@@ -6,7 +6,7 @@ async function majAccueil() {
   const n = courses.length;
   document.getElementById('homeStats').textContent = n
     ? `${n} course${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''} dans la base.`
-    : "Aucune course enregistrée pour l'instant : commence par l'onglet Importer.";
+    : "Aucune course enregistrée pour l'instant : commence par l'onglet Base de données.";
 }
 
 function afficherPage(nom) {

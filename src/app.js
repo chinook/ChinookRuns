@@ -9,8 +9,7 @@ const drop=document.getElementById('drop'),fileIn=document.getElementById('file'
 drop.addEventListener('drop',ev=>{if(ev.dataTransfer.files[0])load(ev.dataTransfer.files[0])});
 fileIn.addEventListener('change',()=>{if(fileIn.files[0])load(fileIn.files[0])});
 
-const sections=()=>[...document.querySelectorAll('details.card')];
-document.getElementById('pick').onclick=()=>fileIn.click();
+const sections=()=>[...document.querySelectorAll('#page-visualiser details.card')];
 document.getElementById('expandAll').onclick=()=>sections().forEach(d=>d.open=true);
 document.getElementById('collapseAll').onclick=()=>sections().forEach(d=>d.open=false);
 // Plotly mesure 0 px dans une section fermée : on redimensionne à l'ouverture
@@ -19,6 +18,7 @@ sections().forEach(d=>d.addEventListener('toggle',()=>{
 
 async function load(f){
   document.getElementById('fname').textContent=f.name;
+  document.getElementById('notesCourse').classList.add('hide');
   let rows;
   if(/\.(xlsx|xls)$/i.test(f.name)){
     const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});

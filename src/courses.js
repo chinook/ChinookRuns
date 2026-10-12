@@ -16,18 +16,48 @@ function champ(type, valeur) {
   return i;
 }
 
+function zoneTexte(valeur) {
+  const t = document.createElement('textarea');
+  t.value = valeur ?? '';
+  t.placeholder = 'Notes sur cette course…';
+  return t;
+}
+
+const courseSearch = document.getElementById('courseSearch');
+const courseInfo = document.getElementById('courseInfo');
+let toutesCourses = [];
+
+// minuscules et sans accents : « gaspesie » trouve « Gaspésie »
+const simplifier = s => String(s ?? '').normalize('NFD').replace(/\p{Mn}/gu, '').toLowerCase();
+
 async function chargerCourses() {
-  const courses = await window.api.listeCourses();
-  courses.sort((a, b) =>
+  toutesCourses = await window.api.listeCourses();
+  toutesCourses.sort((a, b) =>
     (a.date || '').localeCompare(b.date || '') ||
     a.nom.localeCompare(b.nom, undefined, { numeric: true }));
+  dessinerCourses();
+}
+
+function dessinerCourses() {
+  const terme = simplifier(courseSearch.value.trim());
+  const courses = terme
+    ? toutesCourses.filter(c => [c.nom, c.date, c.lieu, c.notes].some(v => simplifier(v).includes(terme)))
+    : toutesCourses;
+
+  courseInfo.textContent = terme
+    ? `${courses.length} sur ${toutesCourses.length} courses`
+    : `${toutesCourses.length} course${toutesCourses.length > 1 ? 's' : ''}`;
 
   listeEl.replaceChildren();
-  if (!courses.length) { listeEl.textContent = 'Aucune course dans la base.'; return; }
+  if (!toutesCourses.length) { listeEl.textContent = 'Aucune course dans la base.'; return; }
+  if (!courses.length) {
+    listeEl.textContent = `Aucune course ne correspond à « ${courseSearch.value.trim()} ».`;
+    return;
+  }
 
   const table = document.createElement('table');
   const entete = table.createTHead().insertRow();
-  ['Nom', 'Date', 'Lieu', ''].forEach(texte => {
+  ['Nom', 'Date', 'Lieu', 'Notes', ''].forEach(texte => {
     const th = document.createElement('th');
     th.textContent = texte;
     entete.appendChild(th);
@@ -40,6 +70,12 @@ async function chargerCourses() {
 function ligneCourse(c) {
   const tr = document.createElement('tr');
   [c.nom, c.date ?? '—', c.lieu ?? '—'].forEach(texte => { tr.insertCell().textContent = texte; });
+
+  const celluleNotes = tr.insertCell();
+  celluleNotes.className = 'notes-cell';
+  celluleNotes.textContent = c.notes ? c.notes.replace(/\s*\n\s*/g, ' · ') : '—';
+  if (c.notes) celluleNotes.title = c.notes;
+
   tr.insertCell().append(
     bouton('Afficher', 'primary', () => afficherCourse(c)),
     bouton('Modifier', '', () => tr.replaceWith(ligneEdition(c))),
@@ -53,14 +89,16 @@ function ligneEdition(c) {
   const nom = champ('text', c.nom);
   const date = champ('date', c.date);
   const lieu = champ('text', c.lieu);
-  [nom, date, lieu].forEach(i => tr.insertCell().appendChild(i));
+  const notes = zoneTexte(c.notes);
+  [nom, date, lieu, notes].forEach(i => tr.insertCell().appendChild(i));
   tr.insertCell().append(
     bouton('Enregistrer', 'primary', async () => {
       if (!nom.value.trim()) { nom.focus(); return; }
       await window.api.modifierCourse(c.id, {
         nom: nom.value.trim(),
         date: date.value || null,
-        lieu: lieu.value.trim() || null
+        lieu: lieu.value.trim() || null,
+        notes: notes.value.trim() || null
       });
       await chargerCourses();
       await chargerTables();
@@ -81,8 +119,20 @@ async function afficherCourse(c) {
   const { entetes, lignes } = await window.api.donneesCourse(c.id);
   const rows = [entetes, ...lignes.map(l => l.map(v => v ?? ''))];
   document.getElementById('fname').textContent = `${c.nom} — ${c.date ?? 'sans date'}`;
+
+  const notesEl = document.getElementById('notesCourse');
+  notesEl.replaceChildren();
+  if (c.notes) {
+    const titre = document.createElement('strong');
+    titre.textContent = 'Notes : ';
+    notesEl.append(titre, c.notes);
+  }
+  notesEl.classList.toggle('hide', !c.notes);
+
   analyse(rows, c.nom);
   document.getElementById('out').scrollIntoView({ behavior: 'smooth' });
 }
+
+courseSearch.addEventListener('input', dessinerCourses);
 
 chargerCourses();
