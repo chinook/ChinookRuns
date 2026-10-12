@@ -6,11 +6,12 @@ Elle lit les fichiers CSV enregistrés sur la carte SD du véhicule, les conserv
 
 ## Fonctionnalités
 
-- **Accueil** : présentation du club, photos et nombre de courses enregistrées
-- **Importer** : un ou plusieurs fichiers CSV / XLSX à la fois, avec la date et le lieu de la course
-- **Base de données** : explorateur en lecture seule des tables
-- **Visualiser** : liste des courses (afficher, modifier, supprimer), puis résumé, diagnostic de l'acquisition, évolution dans le temps, relation entre deux mesures et santé de chaque canal
+- **Accueil** : présentation du club, photos et nombre de courses enregistrées. Le logo de la barre de navigation ramène toujours ici.
+- **Base de données** : import d'un ou plusieurs fichiers CSV / XLSX à la fois (avec la date, le lieu et des notes), puis explorateur en lecture seule des tables avec barre de recherche dans toutes les colonnes
+- **Visualiser une course** : liste des courses avec recherche (nom, date, lieu, notes) et actions Afficher, Modifier et Supprimer ; l'affichage montre les notes de la course, le résumé, le diagnostic de l'acquisition, l'évolution dans le temps, la relation entre deux mesures et la santé de chaque canal. Un fichier peut aussi être ouvert directement, sans être enregistré.
 - **LIVE** : page réservée à la télémétrie en temps réel via LoRa (pas encore implémentée)
+
+L'application s'ouvre en fenêtre maximisée.
 
 ## Technologies
 
@@ -54,9 +55,10 @@ L'application n'est pas signée : Windows peut afficher un avertissement SmartSc
 
 ## Utilisation
 
-1. Ouvre la page **Importer**, choisis les fichiers de course, indique la date et le lieu, puis clique sur **Importer**.
-2. Va dans **Visualiser** et clique sur **Afficher** à côté d'une course.
-3. Utilise **Modifier** pour corriger le nom, la date ou le lieu, et **Supprimer** pour retirer une course et toutes ses mesures.
+1. Ouvre **Base de données**, dans le bloc « Importer dans la base » : choisis les fichiers de course, indique la date, le lieu et éventuellement des notes, puis clique sur **Importer**. Le journal indique le résultat de chaque fichier.
+2. Dans l'explorateur juste en dessous, choisis une table et utilise la barre de recherche pour filtrer ses lignes.
+3. Va dans **Visualiser une course**, cherche une course si besoin, puis clique sur **Afficher** : les notes et les graphiques apparaissent.
+4. **Modifier** permet de corriger le nom, la date, le lieu et les notes ; **Supprimer** retire une course et toutes ses mesures.
 
 ## Format des fichiers de course
 
@@ -87,7 +89,7 @@ Il n'est pas dans le dépôt (voir `.gitignore`). Trois tables :
 
 | Table | Contenu |
 |---|---|
-| `courses` | une ligne par fichier importé (nom, date, lieu, notes, fichier source) |
+| `courses` | une ligne par fichier importé (nom, date, lieu, notes libres, fichier source) |
 | `canaux` | une ligne par colonne de mesure et par course |
 | `echantillons` | une ligne par mesure (course, canal, numéro de ligne `n`, temps `t`, valeur) |
 
@@ -106,12 +108,12 @@ ChinookRuns/
 └── src/
     ├── analyseur.html structure des pages
     ├── styles.css     styles (clair / sombre automatique)
-    ├── navigation.js  barre de navigation
+    ├── navigation.js  barre de navigation et changement de page
     ├── import.js      lecture et import des fichiers
-    ├── courses.js     liste des courses
-    ├── explorateur.js explorateur de la base
+    ├── courses.js     liste des courses : recherche, notes, afficher, modifier, supprimer
+    ├── explorateur.js explorateur de la base avec recherche
     ├── app.js         analyse et graphiques d'une course
-    └── img/           photos de la page d'accueil
+    └── img/           logo et photos de la page d'accueil
 ```
 
 L'ordre des balises `script` dans `analyseur.html` est important : `navigation.js` doit rester en dernier.
