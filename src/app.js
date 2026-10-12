@@ -2,34 +2,12 @@ const COLORS=['--c1','--c2','--c3','--c4','--c5','--c6'];
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const SAT=[4095,1023,65535,255,4096,1024];
 
-/* ---------- Chargement ---------- */
-const drop=document.getElementById('drop'),fileIn=document.getElementById('file');
-['dragover','dragenter'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
-['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
-drop.addEventListener('drop',ev=>{if(ev.dataTransfer.files[0])load(ev.dataTransfer.files[0])});
-fileIn.addEventListener('change',()=>{if(fileIn.files[0])load(fileIn.files[0])});
-
 const sections=()=>[...document.querySelectorAll('#page-visualiser details.card')];
 document.getElementById('expandAll').onclick=()=>sections().forEach(d=>d.open=true);
 document.getElementById('collapseAll').onclick=()=>sections().forEach(d=>d.open=false);
 // Plotly mesure 0 px dans une section fermée : on redimensionne à l'ouverture
 sections().forEach(d=>d.addEventListener('toggle',()=>{
   const id=d.dataset.plot;if(d.open&&id&&document.getElementById(id).data)Plotly.Plots.resize(id)}));
-
-async function load(f){
-  document.getElementById('fname').textContent=f.name;
-  document.getElementById('notesCourse').classList.add('hide');
-  let rows;
-  if(/\.(xlsx|xls)$/i.test(f.name)){
-    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
-    rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
-    // Cas fréquent : tout le CSV collé dans une seule colonne
-    rows=rows.map(r=>(r.length===1&&String(r[0]).includes(','))?String(r[0]).split(','):r);
-  }else{
-    rows=(await f.text()).split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(/[,;\t]/));
-  }
-  analyse(rows,f.name);
-}
 
 /* ---------- Statistiques ---------- */
 const finite=a=>a.filter(Number.isFinite);
@@ -136,7 +114,6 @@ const SEV={crit:'CRITIQUE',warn:'ATTENTION',info:'INFO',ok:'OK'};
 function render(){
   document.getElementById('out').classList.remove('hide');
   document.getElementById('tools').classList.remove('hide');
-  document.getElementById('drop').classList.add('compact');
   document.getElementById('findHint').textContent=D.find.length+' point'+(D.find.length>1?'s':'');
   const live=D.chans.filter(h=>!D.info[h].dead),dead=D.chans.filter(h=>D.info[h].dead);
   const nCrit=D.find.filter(f=>f.sev==='crit').length;
