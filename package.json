@@ -1,0 +1,42 @@
+{
+  "name": "chinookruns",
+  "version": "1.0.0",
+  "description": "Application pour analyser les courses du véhicule Chinook de l'ÉTS.",
+  "main": "main.js",
+  "build": {
+    "appId": "ca.ets.chinook.runs",
+    "productName": "ChinookRuns",
+    "files": [
+      "main.js",
+      "db.js",
+      "preload.js",
+      "build/**",
+      "libs/**",
+      "src/**"
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.1",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
+  }
+}

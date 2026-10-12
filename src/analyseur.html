@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChinookRuns</title>
+<script src="../libs/plotly.min.js"></script>
+<script src="../libs/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <span class="brand">ChinookRuns</span>
+  <button class="btn" data-page="home" type="button">Accueil</button>
+  <button class="btn" data-page="importer" type="button">Importer</button>
+  <button class="btn" data-page="base" type="button">Base de données</button>
+  <button class="btn" data-page="visualiser" type="button">Visualiser une course</button>
+  <button class="btn" data-page="live" type="button">LIVE<span class="tag">bientôt</span></button>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ ACCUEIL ============ -->
+  <section class="page" id="page-home">
+    <div class="hero">
+      <h1>Club Chinook — ÉTS</h1>
+      <p>Le Club Chinook rassemble des étudiants de l'ÉTS qui conçoivent et construisent un véhicule propulsé uniquement par le vent. Les pales entraînent un rotor, et l'énergie passe par un arbre et une transmission à variation continue (NuVinci) jusqu'aux deux essieux arrière.</p>
+      <p>L'électronique embarquée, développée par l'équipe, enregistre les mesures de chaque course : vitesse du véhicule et du vent, régime du rotor, angle des pales, rapport de transmission, rendement… ChinookRuns sert à importer ces enregistrements, à les conserver dans une base de données et à les analyser.</p>
+      <p id="homeStats" class="stats-home"></p>
+    </div>
+    <div class="photos">
+      <figure class="photo" data-nom="src/img/vehicule.jpg">
+        <img src="img/vehicule.jpg" alt="Le véhicule Chinook" onerror="this.parentElement.classList.add('manquante')">
+        <figcaption>Le véhicule Chinook</figcaption>
+      </figure>
+      <figure class="photo" data-nom="src/img/equipe.jpg">
+        <img src="img/equipe.jpg" alt="L'équipe du Club Chinook" onerror="this.parentElement.classList.add('manquante')">
+        <figcaption>L'équipe du Club Chinook</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ IMPORTER ============ -->
+  <section class="page" id="page-importer">
+    <details class="card" open>
+      <summary>Importer dans la base</summary>
+      <div class="body">
+        <div class="row">
+          <input type="file" id="importFiles" accept=".csv,.xlsx,.xls,.txt" multiple>
+          Date <input type="date" id="importDate">
+          Lieu <input type="text" id="importLieu" placeholder="Gaspésie">
+          <button class="btn primary" id="importBtn" type="button">Importer</button>
+        </div>
+        <pre id="importLog"></pre>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ BASE DE DONNÉES ============ -->
+  <section class="page" id="page-base">
+    <details class="card" open>
+      <summary>Explorateur de la base</summary>
+      <div class="body">
+        <div class="row" id="dbTables"></div>
+        <div id="dbGrid"></div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="dbPrev" type="button">◀ Précédent</button>
+          <button class="btn" id="dbNext" type="button">Suivant ▶</button>
+          <button class="btn" id="dbRefresh" type="button">Rafraîchir</button>
+          <span id="dbInfo"></span>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ VISUALISER ============ -->
+  <section class="page" id="page-visualiser">
+    <header class="top">
+      <div>
+        <h1>Visualiser une course</h1>
+        <p class="sub">Choisis une course enregistrée, ou ouvre un fichier de la carte SD (.xlsx ou .csv) sans l'enregistrer.</p>
+      </div>
+      <div class="tools hide" id="tools">
+        <span id="fname"></span>
+        <button class="btn" id="expandAll" type="button">Tout ouvrir</button>
+        <button class="btn" id="collapseAll" type="button">Tout réduire</button>
+        <button class="btn primary" id="pick" type="button">Changer de fichier</button>
+      </div>
+    </header>
+
+    <label id="drop"><input id="file" type="file" accept=".xlsx,.xls,.csv,.txt" class="hide">
+      <b>Glisse un fichier ici</b> ou clique pour le choisir (sans l'enregistrer)
+    </label>
+    
+    <details class="card" open>
+      <summary>Courses enregistrées</summary>
+      <div class="body"><div id="listeCourses"></div></div>
+    </details>
+
+
+
+    <div id="out" class="hide">
+      <details class="card" open><summary>Résumé</summary><div class="body"><div class="stats" id="stats"></div></div></details>
+      <details class="card" open><summary>Diagnostic de l'acquisition<span class="hint" id="findHint"></span></summary><div class="body"><div id="findings"></div></div></details>
+      <details class="card" open data-plot="timeline"><summary>Évolution dans le temps</summary><div class="body">
+        <div class="chips" id="chips"></div>
+        <div id="timeline"></div>
+        <div class="dead" id="deadnote"></div>
+      </div></details>
+      <details class="card" open data-plot="scatter"><summary>Relation entre deux mesures</summary><div class="body">
+        <div class="row">X <select id="sx"></select> Y <select id="sy"></select>
+          <label style="font-size:13px"><input type="checkbox" id="colt" checked> colorer par temps</label></div>
+        <div id="scatter"></div>
+      </div></details>
+      <details class="card" open><summary>Santé de chaque canal</summary><div class="body"><div class="tw" id="health"></div></div></details>
+    </div>
+  </section>
+
+  <!-- ============ LIVE ============ -->
+  <section class="page" id="page-live">
+    <div class="card live">
+      <h1>LIVE</h1>
+      <p>Visualisation en temps réel via les antennes LoRa.</p>
+      <p><b>Pas encore disponible.</b> Cette page sera activée quand les antennes seront installées.</p>
+    </div>
+  </section>
+
+</div>
+
+<script src="app.js"></script>
+<script src="import.js"></script>
+<script src="courses.js"></script>
+<script src="explorateur.js"></script>
+<script src="navigation.js"></script>
+</body>
+</html>

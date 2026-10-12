@@ -1,0 +1,12 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+    listeCourses: () => ipcRenderer.invoke('courses:liste'),
+    creerCourse: (nom) => ipcRenderer.invoke('courses:creer', nom),
+    importerCourse: (course) => ipcRenderer.invoke('courses:importer', course),
+    donneesCourse: (id) => ipcRenderer.invoke('courses:donnees', id),
+    modifierCourse: (id, champs) => ipcRenderer.invoke('courses:modifier', id, champs),
+    supprimerCourse: (id) => ipcRenderer.invoke('courses:supprimer', id),
+    listeTables: () => ipcRenderer.invoke('db:tables'),
+    lignesTable: (nom, limite, decalage) => ipcRenderer.invoke('db:lignes', nom, limite, decalage),
+});
