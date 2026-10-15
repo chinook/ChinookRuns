@@ -8,8 +8,7 @@ Elle lit les fichiers CSV enregistrés sur la carte SD du véhicule, les conserv
 
 - **Accueil** : présentation du club, photos et nombre de courses enregistrées. Le logo de la barre de navigation ramène toujours ici.
 - **Base de données** : import d'un ou plusieurs fichiers CSV / XLSX à la fois (avec la date, le lieu et des notes), puis explorateur en lecture seule des tables avec barre de recherche dans toutes les colonnes
-- **Visualiser une course** : liste des courses avec recherche (nom, date, lieu, notes) et actions Afficher, Modifier et Supprimer ; l'affichage montre les notes de la course, le résumé, le diagnostic de l'acquisition, l'évolution dans le temps, la relation entre deux mesures et la santé de chaque canal. Un fichier peut aussi être ouvert directement, sans être enregistré.
-- **LIVE** : page réservée à la télémétrie en temps réel via LoRa (pas encore implémentée)
+- **Visualiser une course** : liste des courses avec recherche (nom, date, lieu, notes) et actions Afficher, Modifier et Supprimer ; l'affichage montre les notes de la course, le résumé, le diagnostic de l'acquisition, l'évolution dans le temps, la relation entre deux mesures et la santé de chaque canal.- **LIVE** : page réservée à la télémétrie en temps réel via LoRa (pas encore implémentée)
 
 L'application s'ouvre en fenêtre maximisée.
 

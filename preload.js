@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     listeCourses: () => ipcRenderer.invoke('courses:liste'),
+    statsAccueil: () => ipcRenderer.invoke('courses:stats'),
     creerCourse: (nom) => ipcRenderer.invoke('courses:creer', nom),
     importerCourse: (course) => ipcRenderer.invoke('courses:importer', course),
     donneesCourse: (id) => ipcRenderer.invoke('courses:donnees', id),

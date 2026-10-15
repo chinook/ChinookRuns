@@ -49,6 +49,27 @@ function listeCourses() {
     return db.prepare('SELECT * FROM courses ORDER BY id DESC').all();
 }
 
+// Chiffres de la page d'accueil. Les requêtes passent par l'index (course_id, canal_id, n).
+function statsAccueil() {
+    const duree = db.prepare(`
+        SELECT SUM(d) AS s FROM (
+            SELECT (SELECT MAX(e.t) - MIN(e.t) FROM echantillons e
+                    WHERE e.course_id = k.course_id AND e.canal_id = k.id) AS d
+            FROM canaux k WHERE k.id IN (SELECT MIN(id) FROM canaux GROUP BY course_id)
+        )`).get().s;
+
+    const agregat = (fonction, canal) => db.prepare(`
+        SELECT ${fonction}(e.valeur) AS v
+        FROM canaux k JOIN echantillons e ON e.course_id = k.course_id AND e.canal_id = k.id
+        WHERE LOWER(k.nom) = ?`).get(canal).v;
+
+    return {
+        dureeTotale: duree ?? 0,
+        ventMoyen: agregat('AVG', 'vitesse_vent'),
+        vitesseMax: agregat('MAX', 'vitesse_vehicule'),
+    };
+}
+
 function creerCourse(nom) {
     const resultat = db
         .prepare('INSERT INTO courses (nom, date_import) VALUES (?, ?)')
@@ -167,6 +188,6 @@ function supprimerCourse(id) {
 }
 
 module.exports = {
-    ouvrirBase, listeCourses, creerCourse, importerCourse, listeTables, 
+    ouvrirBase, listeCourses, statsAccueil, creerCourse, importerCourse, listeTables, 
     lignesTable, donneesCourse, modifierCourse, supprimerCourse
 };

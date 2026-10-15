@@ -20,6 +20,7 @@ function createWindow() {
 }
 
 ipcMain.handle('courses:liste', () => db.listeCourses());
+ipcMain.handle('courses:stats', () => db.statsAccueil());
 ipcMain.handle('courses:creer', (event, nom) => db.creerCourse(nom));
 ipcMain.handle('courses:importer', (event, course) => db.importerCourse(course));
 ipcMain.handle('courses:donnees', (event, id) => db.donneesCourse(id));
