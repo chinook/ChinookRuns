@@ -152,18 +152,33 @@ function baseLayout(){
     margin:{l:60,r:16,t:10,b:44},hoverlabel:{namelength:-1},_line:line};
 }
 
+/* Hauteur d'un graphique par canal (réglage partagé avec la page LIVE, mémorisé) */
+const TAILLES={normal:130,grand:240,tres:360};
+function tailleCanal(){let v='grand';try{v=localStorage.getItem('hauteurCanal')||v}catch{}return TAILLES[v]||TAILLES.grand}
+function initTaille(selId,redessiner){
+  const s=document.getElementById(selId);let v='grand';
+  try{v=localStorage.getItem('hauteurCanal')||v}catch{}
+  s.value=TAILLES[v]?v:'grand';
+  s.onchange=()=>{
+    try{localStorage.setItem('hauteurCanal',s.value)}catch{}
+    document.querySelectorAll('select.taille').forEach(o=>o.value=s.value);
+    redessiner();
+  };
+}
+const nbGraduations=H=>Math.max(4,Math.round(H/32));   // plus le graphique est haut, plus l'axe Y est détaillé
+
 function drawTimeline(){
   const sel=[...document.querySelectorAll('#chips input:checked')].map(i=>i.dataset.h);
   const live=D.chans.filter(h=>!D.info[h].dead);
   const L=baseLayout(),n=sel.length;if(!n){Plotly.purge('timeline');return}
-  const gap=.025,h=(1-gap*(n-1))/n;
-  const layout={...L,height:Math.max(260,n*130+50),hovermode:'x unified',showlegend:false,
+  const H=tailleCanal(),gap=.025,h=(1-gap*(n-1))/n;
+  const layout={...L,height:Math.max(260,n*H+70),hovermode:'x unified',showlegend:false,
     xaxis:{title:'temps (s)',gridcolor:L._line,anchor:'y'+(n>1?n:''),zeroline:false}};
   const traces=[];
   sel.forEach((hn,k)=>{
     const ax=n-k,key=ax===1?'y':'y'+ax;                // premier canal en haut
     const dom=[1-(k+1)*h-k*gap,1-k*(h+gap)];
-    layout['yaxis'+(ax===1?'':ax)]={domain:dom,title:{text:hn,font:{size:11}},gridcolor:L._line,zeroline:false,automargin:true};
+    layout['yaxis'+(ax===1?'':ax)]={domain:dom,title:{text:hn,font:{size:11}},gridcolor:L._line,zeroline:false,automargin:true,nticks:nbGraduations(H)};
     const col=css(COLORS[live.indexOf(hn)%6]),i=D.info[hn];
     traces.push({x:D.t,y:i.v,type:'scattergl',mode:'lines',name:hn,line:{color:col,width:1.3},yaxis:key,xaxis:'x'});
     if(i.spikes.length)traces.push({x:i.spikes.map(j=>D.t[j]),y:i.spikes.map(j=>i.v[j]),type:'scattergl',mode:'markers',
@@ -182,6 +197,8 @@ function drawScatter(){
     text:D.t.map(v=>'t = '+fmt(v,1)+' s'),hovertemplate:x+': %{x}<br>'+y+': %{y}<br>%{text}<extra></extra>'}],
     {...L,height:380,xaxis:{title:x,gridcolor:L._line},yaxis:{title:y,gridcolor:L._line}},{responsive:true,displaylogo:false});
 }
+
+initTaille('hauteurCanal',()=>{if(typeof D!=='undefined'&&D)drawTimeline()});
 
 // pour tests / console : analyseTexte(csv)
 window.analyseTexte=t=>analyse(t.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(',')),'test');

@@ -205,15 +205,15 @@ function lvGraphe() {
   while (i0 > 0 && lv.lignes[i0 - 1][0] >= debut) i0--;
   const vue = lv.lignes.slice(i0), x = vue.map(l => l[0]);
 
-  const L = baseLayout(), gap = .03, h = (1 - gap * (n - 1)) / n;
-  const layout = { ...L, height: Math.max(260, n * 130 + 50), hovermode: 'x unified', showlegend: false,
+  const H = tailleCanal(), L = baseLayout(), gap = .03, h = (1 - gap * (n - 1)) / n;
+  const layout = { ...L, height: Math.max(260, n * H + 70), hovermode: 'x unified', showlegend: false,
     uirevision: 'live', xaxis: { title: 'temps (s)', gridcolor: L._line, anchor: 'y', zeroline: false, range: [Math.max(debut, x[0]), fin] } };
   $lv('lvGraph').style.height = layout.height + 'px';   // sans ça la carte garde 0 px et le graphique déborde dessus
   const traces = [];
   sel.forEach((nom, k) => {
     const ax = n - k, cle = ax === 1 ? 'y' : 'y' + ax;
     layout['yaxis' + (ax === 1 ? '' : ax)] = { domain: [1 - (k + 1) * h - k * gap, 1 - k * (h + gap)],
-      title: { text: nom, font: { size: 11 } }, gridcolor: L._line, zeroline: false, automargin: true };
+      title: { text: nom, font: { size: 11 } }, gridcolor: L._line, zeroline: false, automargin: true, nticks: nbGraduations(H) };
     const j = lv.cols.indexOf(nom);
     traces.push({ x, y: vue.map(l => l[j]), type: 'scattergl', mode: 'lines', name: nom,
       line: { color: css(COLORS[lv.cols.filter(c => !LV_META.test(c) && c.toLowerCase() !== 'temps_s').indexOf(nom) % 6]), width: 1.4 },
@@ -257,6 +257,7 @@ $lv('lvArreter').onclick = lvArreter;
 $lv('lvEnregistrer').onclick = lvEnregistrer;
 $lv('lvVider').onclick = lvVider;
 $lv('lvFenetre').onchange = lvGraphe;
+initTaille('lvHauteur', lvGraphe);
 $lv('lvPause').onchange = lvGraphe;
 document.querySelectorAll('#page-live details[data-live-plot]').forEach(d =>
   d.addEventListener('toggle', () => { if (d.open && $lv(d.dataset.livePlot).data) Plotly.Plots.resize($lv(d.dataset.livePlot)); }));

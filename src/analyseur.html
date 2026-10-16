@@ -117,7 +117,10 @@
       <details class="card" open><summary>Résumé</summary><div class="body"><div class="stats" id="stats"></div></div></details>
       <details class="card" open><summary>Diagnostic de l'acquisition<span class="hint" id="findHint"></span></summary><div class="body"><div id="findings"></div></div></details>
       <details class="card" open data-plot="timeline"><summary>Évolution dans le temps</summary><div class="body">
-        <div class="chips" id="chips"></div>
+        <div class="row">Hauteur des graphiques
+        <select id="hauteurCanal" class="taille"><option value="normal">Normale</option><option value="grand">Grande</option><option value="tres">Très grande</option></select>
+      </div>
+      <div class="chips" id="chips"></div>
         <div id="timeline"></div>
         <div class="dead" id="deadnote"></div>
       </div></details>
@@ -156,6 +159,7 @@
     <details class="card" open data-live-plot="lvGraph"><summary>Évolution en direct</summary><div class="body">
       <div class="row">Fenêtre
         <select id="lvFenetre"><option value="60">1 min</option><option value="120" selected>2 min</option><option value="300">5 min</option><option value="900">15 min</option></select>
+        Hauteur <select id="lvHauteur" class="taille"><option value="normal">Normale</option><option value="grand">Grande</option><option value="tres">Très grande</option></select>
         <label class="lv-opt"><input type="checkbox" id="lvPause"> figer l'affichage</label>
       </div>
       <div class="chips" id="lvChips"></div>
