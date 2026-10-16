@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const db = require('./db');
 
@@ -12,6 +12,22 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     }
   });
+  // Port série (page LIVE) : Electron n'affiche pas de sélecteur de port, on le fournit ici
+  const ses = win.webContents.session;
+  ses.setPermissionCheckHandler((wc, permission) => permission === 'serial');
+  ses.setDevicePermissionHandler(details => details.deviceType === 'serial');
+  ses.on('select-serial-port', (event, ports, wc, callback) => {
+    event.preventDefault();
+    if (ports.length <= 1) return callback(ports[0] ? ports[0].portId : '');
+    const choix = dialog.showMessageBoxSync(win, {
+      type: 'question',
+      message: 'Quel port utiliser pour le récepteur LoRa ?',
+      buttons: [...ports.map(p => p.displayName || p.portName), 'Annuler'],
+      cancelId: ports.length,
+    });
+    callback(choix < ports.length ? ports[choix].portId : '');
+  });
+
   win.once('ready-to-show', () => {
     win.maximize();
     win.show();

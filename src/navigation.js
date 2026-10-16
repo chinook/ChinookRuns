@@ -71,6 +71,9 @@ function afficherPage(nom) {
 
   if (nom === 'home') majAccueil();
   if (nom === 'base') chargerTables();
+  if (nom === 'live') {
+    requestAnimationFrame(() => { const g = document.getElementById('lvGraph'); if (g && g.data) Plotly.Plots.resize(g); });
+  }
   if (nom === 'visualiser') {
     chargerCourses();
     // Plotly mesure 0 px dans une page cachée : on redimensionne au retour

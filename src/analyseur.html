@@ -18,7 +18,7 @@
   <button class="btn" data-page="home" type="button">Accueil</button>
   <button class="btn" data-page="base" type="button">Base de données</button>
   <button class="btn" data-page="visualiser" type="button">Visualiser une course</button>
-  <button class="btn" data-page="live" type="button">LIVE<span class="tag">bientôt</span></button>
+  <button class="btn" data-page="live" type="button">LIVE</button>
 </nav>
 
 <div class="wrap">
@@ -132,10 +132,45 @@
 
   <!-- ============ LIVE ============ -->
   <section class="page" id="page-live">
-    <div class="card live">
-      <h1>LIVE</h1>
-      <p>Visualisation en temps réel via les antennes LoRa.</p>
-      <p><b>Pas encore disponible.</b> Cette page sera activée quand les antennes seront installées.</p>
+    <header class="top">
+      <div>
+        <h1>LIVE <span class="badge b-info" id="lvEtat">DÉCONNECTÉ</span></h1>
+        <p class="sub">Télémétrie en temps réel : le récepteur LoRa branché au PC envoie chaque paquet reçu par USB.</p>
+      </div>
+      <div class="tools">
+        <label class="lv-opt">Vitesse <select id="lvBaud"><option>9600</option><option>57600</option><option selected>115200</option><option>230400</option></select></label>
+        <button class="btn primary" id="lvConnecter" type="button">Connecter le récepteur</button>
+        <button class="btn" id="lvSimuler" type="button">Simuler</button>
+        <button class="btn hide" id="lvArreter" type="button">Arrêter</button>
+      </div>
+    </header>
+
+    <div id="lvAlerte" class="lv-alerte hide"></div>
+
+    <details class="card" open><summary>Dernières valeurs<span class="hint" id="lvCompteur"></span></summary>
+      <div class="body"><div class="stats" id="lvTuiles"><span class="dead">En attente de données… connecte le récepteur ou lance la simulation.</span></div></div></details>
+
+    <details class="card" open><summary>Qualité de la liaison</summary>
+      <div class="body"><div class="stats" id="lvLiaison"></div></div></details>
+
+    <details class="card" open data-live-plot="lvGraph"><summary>Évolution en direct</summary><div class="body">
+      <div class="row">Fenêtre
+        <select id="lvFenetre"><option value="60">1 min</option><option value="120" selected>2 min</option><option value="300">5 min</option><option value="900">15 min</option></select>
+        <label class="lv-opt"><input type="checkbox" id="lvPause"> figer l'affichage</label>
+      </div>
+      <div class="chips" id="lvChips"></div>
+      <div id="lvGraph"></div>
+    </div></details>
+
+    <details class="card"><summary>Données brutes reçues</summary>
+      <div class="body"><pre id="lvBrut" class="lv-brut"></pre></div></details>
+
+    <div class="card lv-session">
+      <div><b>Session</b> <span id="lvSession" class="dead">aucune donnée</span></div>
+      <div class="row" style="margin:0">
+        <button class="btn primary" id="lvEnregistrer" type="button" disabled>Enregistrer dans la base</button>
+        <button class="btn" id="lvVider" type="button" disabled>Vider</button>
+      </div>
     </div>
   </section>
 
@@ -145,6 +180,7 @@
 <script src="import.js"></script>
 <script src="courses.js"></script>
 <script src="explorateur.js"></script>
+<script src="live.js"></script>
 <script src="navigation.js"></script>
 </body>
 </html>

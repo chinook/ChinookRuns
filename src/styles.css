@@ -113,6 +113,14 @@ select{background:var(--card);color:var(--ink);border:1px solid var(--line);bord
 .photo.manquante::before{content:"Photo à ajouter : " attr(data-nom);display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;border-bottom:2px dashed var(--line);color:var(--muted);font-size:13px;padding:8px;text-align:center}
 
 /* ---------- Live ---------- */
+#page-live h1{display:flex;align-items:center;gap:12px}
+#page-live h1 .badge{margin-top:0;font-size:12px}
+.lv-opt{font-size:13px;display:flex;align-items:center;gap:6px}
+.lv-alerte{border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:8px 12px;margin-bottom:16px;font-size:14px}
+.lv-brut{margin:0;max-height:220px;overflow:auto;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;white-space:pre}
+.lv-session{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px}
+.stat.vieux .v{color:var(--muted)}
+.stat .u{font-size:12px;color:var(--muted);font-weight:400}
 .live{text-align:center;padding:60px 16px;color:var(--muted)}
 .live h1{color:var(--ink);font-size:34px}
 #dbGrid{overflow:auto;height:calc(100vh - 320px);min-height:320px;border:1px solid var(--line);border-radius:6px}
