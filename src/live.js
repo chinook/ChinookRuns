@@ -1,6 +1,6 @@
 /* Page LIVE : lit les paquets reçus par le récepteur LoRa (port série USB) ou une simulation.
    Format attendu : une ligne CSV par paquet, avec une ligne d'en-tête au début
-     temps_s,vitesse_vent,rotor_speed,...,seq,rssi,snr
+     time,wind_speed,rotor_rpm,...,seq,rssi,snr
    Les colonnes seq / rssi / snr (facultatives) servent à la qualité de la liaison. */
 
 const LV_META = /^(seq|pkt|rssi|snr)$/i;
@@ -9,7 +9,7 @@ const LV_SILENCE_S = 5;             // alerte si aucun paquet depuis ce délai
 
 const lv = {
   mode: null,                       // 'serial' | 'sim'
-  tempsLocal: false,                // true si les paquets n'ont pas de temps_s
+  tempsLocal: false,                // true si les paquets n'ont pas de colonne time
   port: null, reader: null, fermeture: null, simTimer: null,
   cols: [], lignes: [],
   debut: 0, dernierPaquet: 0, nbPaquets: 0, perdus: 0, derniereSeq: null,
@@ -18,6 +18,8 @@ const lv = {
 
 const $lv = id => document.getElementById(id);
 const lvCol = nom => lv.cols.findIndex(c => c.toLowerCase() === nom);
+const LV_TEMPS = /^(time|temps_s)$/i;   // 'temps_s' = ancien nom, encore accepté
+const lvColTemps = () => lv.cols.findIndex(c => LV_TEMPS.test(c));
 
 /* ---------- Réception ---------- */
 function lvLigne(texte) {
@@ -31,8 +33,8 @@ function lvLigne(texte) {
     // la première valeur n'est pas un nombre : c'est une ligne d'en-tête (ou du bruit)
     const nouvelle = jetons.join() !== lv.cols.join();
     if (nouvelle && jetons.length > 1) {
-      lv.tempsLocal = !jetons.some(c => c.toLowerCase() === 'temps_s');    // sinon on horodate à la réception
-      lv.cols = lv.tempsLocal ? ['temps_s', ...jetons] : jetons;
+      lv.tempsLocal = !jetons.some(c => LV_TEMPS.test(c));    // sinon on horodate à la réception
+      lv.cols = lv.tempsLocal ? ['time', ...jetons] : jetons;
       lv.lignes = [];
       lvChips();
     }
@@ -41,7 +43,7 @@ function lvLigne(texte) {
   const nombres = jetons.map(j => j === '' ? NaN : Number(j));   // capteur absent = trou, pas une erreur
   if (!lv.cols.length) {                                          // aucun en-tête reçu : colonnes génériques
     lv.tempsLocal = false;
-    lv.cols = ['temps_s', ...nombres.slice(1).map((_, i) => 'canal' + (i + 1))];
+    lv.cols = ['time', ...nombres.slice(1).map((_, i) => 'canal' + (i + 1))];
     lvChips();
   }
   if (nombres.length !== lv.cols.length - (lv.tempsLocal ? 1 : 0)) return;   // paquet incomplet : ignoré
@@ -98,7 +100,7 @@ async function lvConnecter() {
 function lvSimuler() {
   lvDemarrer('sim');
   lv.cols = []; lv.lignes = [];
-  lvLigne('temps_s,vitesse_vehicule,vitesse_vent,rotor_speed,pitch_degree,TSR,seq,rssi,snr');
+  lvLigne('time,vehicle_speed,wind_speed,rotor_rpm,pitch_angle,tsr,seq,rssi,snr');
   let seq = 0, t = 0;
   lv.simTimer = setInterval(() => {
     t += 0.5; seq++;
@@ -156,7 +158,7 @@ function lvEtat() {
 
 /* ---------- Affichage ---------- */
 function lvChips() {
-  const donnees = lv.cols.filter(c => !LV_META.test(c) && c.toLowerCase() !== 'temps_s');
+  const donnees = lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c));
   $lv('lvChips').innerHTML = donnees.map((h, i) =>
     `<label><input type="checkbox" data-h="${h}" ${i < 4 ? 'checked' : ''}><span class="dot" style="background:${css(COLORS[i % 6])}"></span>${h}</label>`).join('');
   $lv('lvChips').querySelectorAll('input').forEach(i => i.onchange = lvGraphe);
@@ -181,7 +183,7 @@ function lvDessiner() {
   if (!n) return;
 
   const derniere = lv.lignes[n - 1];
-  $lv('lvTuiles').innerHTML = lv.cols.map((c, j) => LV_META.test(c) || j === lvCol('temps_s') ? '' : lvTuile(fmt(derniere[j]), c, vieux)).join('');
+  $lv('lvTuiles').innerHTML = lv.cols.map((c, j) => LV_META.test(c) || j === lvColTemps() ? '' : lvTuile(fmt(derniere[j]), c, vieux)).join('');
 
   const iR = lvCol('rssi'), iS = lvCol('snr');
   const total = lv.nbPaquets + lv.perdus;
@@ -216,7 +218,7 @@ function lvGraphe() {
       title: { text: nom, font: { size: 11 } }, gridcolor: L._line, zeroline: false, automargin: true, nticks: nbGraduations(H) };
     const j = lv.cols.indexOf(nom);
     traces.push({ x, y: vue.map(l => l[j]), type: 'scattergl', mode: 'lines', name: nom,
-      line: { color: css(COLORS[lv.cols.filter(c => !LV_META.test(c) && c.toLowerCase() !== 'temps_s').indexOf(nom) % 6]), width: 1.4 },
+      line: { color: css(COLORS[lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c)).indexOf(nom) % 6]), width: 1.4 },
       xaxis: 'x', yaxis: cle });
   });
   Plotly.react('lvGraph', traces, layout, { responsive: true, displaylogo: false });
@@ -234,7 +236,7 @@ async function lvEnregistrer() {
     notes: lv.mode === 'sim' ? 'Session simulée' : 'Session enregistrée en direct (LoRa)',
     fichierSource: `LIVE ${horodatage} (${lv.lignes.length} lignes)`,
     entetes: lv.cols,
-    colTemps: Math.max(0, lvCol('temps_s')),
+    colTemps: Math.max(0, lvColTemps()),
     lignes: lv.lignes.map(l => l.map(v => Number.isFinite(v) ? v : null)),
   });
   alert(res.doublon ? 'Cette session est déjà dans la base.' : 'Session enregistrée dans la base de données.');

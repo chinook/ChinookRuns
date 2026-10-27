@@ -64,7 +64,7 @@ L'application n'est pas signée : Windows peut afficher un avertissement SmartSc
 Exemple d'en-tête d'un fichier de la carte SD :
 
 ```
-temps_s,vitesse_vehicule,vitesse_vent,gear_ratio,pitch_degree,rotor_speed,TURB,CMD,WIND,Efficiency,TSR
+time,vehicle_speed,wind_speed,current_gear,gear_ratio,pitch_angle,pitch_auto_target,mast_angle,rotor_rpm,wind_direction,efficiency,tsr
 ```
 
 - Séparateurs acceptés : virgule, point-virgule, tabulation. Formats : CSV, TXT, XLSX, XLS.
@@ -74,7 +74,7 @@ temps_s,vitesse_vehicule,vitesse_vent,gear_ratio,pitch_degree,rotor_speed,TURB,C
 - Les fichiers de moins de 10 lignes sont ignorés.
 - Un fichier est considéré comme déjà importé si son nom, sa taille et la date saisie sont identiques.
 
-Une partie du diagnostic (`src/app.js`) est écrite pour les noms de colonnes actuels (`vitesse_vent`, `TSR`, `rotor_speed`, `CMD`, `WIND`). Si tu les renommes, ces vérifications précises ne se déclenchent plus ; le reste de l'analyse s'adapte automatiquement.
+Une partie du diagnostic (`src/app.js`) est écrite pour les noms de colonnes actuels (`wind_speed`, `tsr`, `rotor_rpm`, `wind_direction`; les anciens noms `vitesse_vent` et `rotor_speed` sont aussi reconnus). Si tu les renommes, ces vérifications précises ne se déclenchent plus ; le reste de l'analyse s'adapte automatiquement.
 
 ## Base de données
 

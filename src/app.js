@@ -77,16 +77,16 @@ function analyse(rows,name){
 
   // --- Relations (si les colonnes existent)
   const c=n=>cols[Object.keys(cols).find(k=>k.toLowerCase()===n.toLowerCase())];
-  const vent=c('vitesse_vent'),tsr=c('TSR'),rot=c('rotor_speed'),cmd=c('CMD'),wind=c('WIND');
+  const vent=c('wind_speed')||c('vitesse_vent'),tsr=c('tsr'),rot=c('rotor_rpm')||c('rotor_speed'),wind=c('wind_direction')||c('WIND');
   if(vent&&tsr){
     const idx=vent.map((_,i)=>i).filter(i=>vent[i]>.1&&tsr[i]>0);
     if(idx.length>20){
       const k=idx.map(i=>tsr[i]*vent[i]),cv=Math.sqrt(mean(k.map(x=>(x-mean(k))**2)))/mean(k);
-      if(cv<.03) add('crit','TSR = '+fmt(mean(k),1)+' ÷ vitesse_vent : il ne dépend pas de la vitesse du rotor',
-        'TSR×vent est quasi constant (écart '+fmt(cv*100,1)+' %). Le TSR devrait être proportionnel à rotor_speed ÷ vent. Il est probablement calculé avec une vitesse de rotor fixe ou périmée : à vérifier dans le code.');
+      if(cv<.03) add('crit','TSR = '+fmt(mean(k),1)+' ÷ wind_speed : il ne dépend pas de la vitesse du rotor',
+        'TSR×vent est quasi constant (écart '+fmt(cv*100,1)+' %). Le TSR devrait être proportionnel à rotor_rpm ÷ vent. Il est probablement calculé avec une vitesse de rotor fixe ou périmée : à vérifier dans le code.');
     }
     const z=vent.filter((x,i)=>x>.1&&tsr[i]===0).length,tot=vent.filter(x=>x>.1).length;
-    if(tot&&z/tot>.05) add('warn','TSR = 0 alors qu\'il y a du vent ('+z+' lignes, '+Math.round(z/tot*100)+' %)','Condition dans le code qui force le TSR à 0 ou division échouée. À comparer avec l\'état de rotor_speed.');
+    if(tot&&z/tot>.05) add('warn','TSR = 0 alors qu\'il y a du vent ('+z+' lignes, '+Math.round(z/tot*100)+' %)','Condition dans le code qui force le TSR à 0 ou division échouée. À comparer avec l\'état de rotor_rpm.');
   }
   if(vent&&rot){
     const fast=rot.filter((x,i)=>x>0&&vent[i]<.5).length;
@@ -94,13 +94,12 @@ function analyse(rows,name){
     if(st.length>3){
       const d=[...new Set(st.map(x=>+x.toFixed(2)))].sort((a,b)=>a-b);
       const step=d.length>1?Math.min(...d.slice(1).map((x,i)=>x-d[i])):NaN;
-      if(step>1) add('info','rotor_speed est quantifié par pas de '+fmt(step,2),'La vitesse n\'a que quelques valeurs possibles : le comptage d\'impulsions est trop grossier à basse vitesse. Mesurer le temps entre impulsions donnerait une meilleure résolution.');
+      if(step>1) add('info','rotor_rpm est quantifié par pas de '+fmt(step,2),'La vitesse n\'a que quelques valeurs possibles : le comptage d\'impulsions est trop grossier à basse vitesse. Mesurer le temps entre impulsions donnerait une meilleure résolution.');
     }
   }
-  if(vent&&cmd&&corr(vent,cmd)>.99) add('info','CMD suit presque exactement vitesse_vent (corrélation '+fmt(corr(vent,cmd),3)+')','Soit CMD est une consigne dérivée du vent, soit c\'est une copie du même capteur. Si c\'est un 2e anémomètre, utile pour valider le 1er (écart moyen '+fmt(mean(vent.map((x,i)=>Math.abs(x-cmd[i]))),2)+').');
   if(wind){
     const out=finite(wind).filter(x=>Math.abs(x)>90).length;
-    if(out>0) add('info','WIND dépasse ±90° pour '+out+' échantillons ('+Math.round(out/N*100)+' %)','Si WIND est une direction relative, le vent vient de côté/arrière ou la girouette est bruitée. Si ce n\'est pas un angle, ignorer.');
+    if(out>0) add('info','wind_direction dépasse ±90° pour '+out+' échantillons ('+Math.round(out/N*100)+' %)','Si wind_direction est une direction relative, le vent vient de côté/arrière ou la girouette est bruitée. Si ce n\'est pas un angle, ignorer.');
   }
   if(!find.length) add('ok','Rien d\'anormal détecté','Aucune des règles n\'a déclenché.');
   const ord={crit:0,warn:1,info:2,ok:3};find.sort((a,b)=>ord[a.sev]-ord[b.sev]);
@@ -134,8 +133,8 @@ function render(){
   const opts=live.map(h=>`<option>${h}</option>`).join('');
   const sx=document.getElementById('sx'),sy=document.getElementById('sy');
   sx.innerHTML=sy.innerHTML=opts;
-  if(live.includes('vitesse_vent'))sx.value='vitesse_vent';
-  sy.value=live.includes('rotor_speed')?'rotor_speed':live[Math.min(1,live.length-1)];
+  const cv_=['wind_speed','vitesse_vent'].find(n=>live.includes(n));if(cv_)sx.value=cv_;
+  sy.value=['rotor_rpm','rotor_speed'].find(n=>live.includes(n))||live[Math.min(1,live.length-1)];
   sx.onchange=sy.onchange=document.getElementById('colt').onchange=drawScatter;
   drawScatter();
 

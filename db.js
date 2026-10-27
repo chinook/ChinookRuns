@@ -58,15 +58,16 @@ function statsAccueil() {
             FROM canaux k WHERE k.id IN (SELECT MIN(id) FROM canaux GROUP BY course_id)
         )`).get().s;
 
-    const agregat = (fonction, canal) => db.prepare(`
+    // les anciens noms de colonnes (courses déjà importées) restent reconnus
+    const agregat = (fonction, ...canaux) => db.prepare(`
         SELECT ${fonction}(e.valeur) AS v
         FROM canaux k JOIN echantillons e ON e.course_id = k.course_id AND e.canal_id = k.id
-        WHERE LOWER(k.nom) = ?`).get(canal).v;
+        WHERE LOWER(k.nom) IN (${canaux.map(() => '?').join(',')})`).get(...canaux).v;
 
     return {
         dureeTotale: duree ?? 0,
-        ventMoyen: agregat('AVG', 'vitesse_vent'),
-        vitesseMax: agregat('MAX', 'vitesse_vehicule'),
+        ventMoyen: agregat('AVG', 'wind_speed', 'vitesse_vent'),
+        vitesseMax: agregat('MAX', 'vehicle_speed', 'vitesse_vehicule'),
     };
 }
 
@@ -175,7 +176,7 @@ function donneesCourse(id) {
         ligne[colonne.get(e.canal_id)] = e.valeur;
     }
 
-    return { entetes: ['temps_s', ...canaux.map(c => c.nom)], lignes };
+    return { entetes: ['time', ...canaux.map(c => c.nom)], lignes };
 }
 
 function modifierCourse(id, { nom, date, lieu, notes }) {
