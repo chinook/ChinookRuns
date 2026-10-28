@@ -25,6 +25,7 @@ function zoneTexte(valeur) {
 
 const courseSearch = document.getElementById('courseSearch');
 const courseInfo = document.getElementById('courseInfo');
+const viderBtn = document.getElementById('viderBtn');
 let toutesCourses = [];
 
 // minuscules et sans accents : « gaspesie » trouve « Gaspésie »
@@ -47,6 +48,7 @@ function dessinerCourses() {
   courseInfo.textContent = terme
     ? `${courses.length} sur ${toutesCourses.length} courses`
     : `${toutesCourses.length} course${toutesCourses.length > 1 ? 's' : ''}`;
+  viderBtn.disabled = !toutesCourses.length;
 
   listeEl.replaceChildren();
   if (!toutesCourses.length) { listeEl.textContent = 'Aucune course dans la base.'; return; }
@@ -133,6 +135,26 @@ async function afficherCourse(c) {
   document.getElementById('out').scrollIntoView({ behavior: 'smooth' });
 }
 
+async function viderToutesLesCourses() {
+  const n = toutesCourses.length;
+  if (!n) return;
+  if (!confirm(`Supprimer les ${n} course${n > 1 ? 's' : ''} de la base, avec toutes leurs mesures ?\n\nUne copie de sauvegarde de la base est faite juste avant.`)) return;
+  if (!confirm('Dernière confirmation : toutes les courses seront supprimées. Continuer ?')) return;
+
+  viderBtn.disabled = true;
+  try {
+    await window.api.viderCourses();
+  } catch (e) {
+    alert('Erreur pendant la suppression : ' + e.message);
+  }
+  // les graphiques affichés appartenaient à une course qui n'existe plus
+  document.getElementById('out').classList.add('hide');
+  document.getElementById('tools').classList.add('hide');
+  await chargerCourses();
+  await chargerTables();
+}
+
 courseSearch.addEventListener('input', dessinerCourses);
+viderBtn.addEventListener('click', viderToutesLesCourses);
 
 chargerCourses();

@@ -70,7 +70,7 @@ function afficherPage(nom) {
   window.scrollTo(0, 0);
 
   if (nom === 'home') majAccueil();
-  if (nom === 'base') chargerTables();
+  if (nom === 'base') { chargerTables(); chargerCourses(); }   // chargerCourses met à jour le bouton « Vider la base »
   if (nom === 'live') {
     requestAnimationFrame(() => { const g = document.getElementById('lvGraph'); if (g && g.data) Plotly.Plots.resize(g); });
   }

@@ -188,7 +188,23 @@ function supprimerCourse(id) {
     return db.prepare('DELETE FROM courses WHERE id = ?').run(id).changes;
 }
 
+// Supprime TOUTES les courses (et leurs canaux et mesures, en cascade).
+// Une copie de la base est faite juste avant, dans le dossier de données de l'utilisateur.
+async function viderCourses() {
+    const sauvegarde = path.join(app.getPath('userData'), 'chinook-avant-vidage.db');
+    const nb = db.prepare('SELECT COUNT(*) AS n FROM courses').get().n;
+    if (nb === 0) return { supprimees: 0, sauvegarde: null };
+
+    await db.backup(sauvegarde);
+    db.transaction(() => {
+        db.prepare('DELETE FROM courses').run();
+        db.prepare("DELETE FROM sqlite_sequence WHERE name IN ('courses', 'canaux')").run();
+    })();
+    db.exec('VACUUM');   // rend l'espace disque libéré
+    return { supprimees: nb, sauvegarde };
+}
+
 module.exports = {
     ouvrirBase, listeCourses, statsAccueil, creerCourse, importerCourse, listeTables, 
-    lignesTable, donneesCourse, modifierCourse, supprimerCourse
+    lignesTable, donneesCourse, modifierCourse, supprimerCourse, viderCourses
 };

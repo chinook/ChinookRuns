@@ -42,6 +42,7 @@ ipcMain.handle('courses:importer', (event, course) => db.importerCourse(course))
 ipcMain.handle('courses:donnees', (event, id) => db.donneesCourse(id));
 ipcMain.handle('courses:modifier', (event, id, champs) => db.modifierCourse(id, champs));
 ipcMain.handle('courses:supprimer', (event, id) => db.supprimerCourse(id));
+ipcMain.handle('courses:vider', () => db.viderCourses());
 ipcMain.handle('db:tables', () => db.listeTables());
 ipcMain.handle('db:lignes', (event, nom, limite, decalage, recherche) => db.lignesTable(nom, limite, decalage, recherche));
 
