@@ -10,6 +10,27 @@
 </head>
 <body>
 
+<div class="barre-titre" id="barreTitre">
+  <img class="barre-titre-logo" src="img/chinook_ets_black.png" alt="ChinookRuns" draggable="false">
+  <nav class="barre-menus">
+    <div class="barre-menu"><button type="button">Fichier</button>
+      <div class="barre-menu-liste" hidden><button type="button" data-action="quitter">Quitter</button></div></div>
+    <div class="barre-menu"><button type="button">Édition</button>
+      <div class="barre-menu-liste" hidden>
+        <button type="button" data-action="couper">Couper</button>
+        <button type="button" data-action="copier">Copier</button>
+        <button type="button" data-action="coller">Coller</button>
+        <button type="button" data-action="tout-selectionner">Tout sélectionner</button>
+      </div></div>
+    <div class="barre-menu"><button type="button">Affichage</button>
+      <div class="barre-menu-liste" hidden>
+        <button type="button" data-action="recharger">Recharger</button>
+        <button type="button" data-action="plein-ecran">Plein écran</button>
+        <button type="button" data-action="outils">Outils de développement</button>
+      </div></div>
+  </nav>
+</div>
+
 <nav class="nav" id="nav">
   <button class="logo-lien" data-page="home" type="button" title="Accueil" aria-label="Retour à l'accueil">
     <img class="logo-nav" src="img/chinook_ets_black.png" alt="Logo Chinook">
@@ -187,5 +208,6 @@
 <script src="explorateur.js"></script>
 <script src="live.js"></script>
 <script src="navigation.js"></script>
+<script src="barre-titre.js"></script>
 </body>
 </html>

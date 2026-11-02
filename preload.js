@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+    actionFenetre: (action) => ipcRenderer.invoke('fenetre:action', action),
     listeCourses: () => ipcRenderer.invoke('courses:liste'),
     statsAccueil: () => ipcRenderer.invoke('courses:stats'),
     creerCourse: (nom) => ipcRenderer.invoke('courses:creer', nom),
