@@ -37,6 +37,18 @@ function createWindow() {
     callback(choix < ports.length ? ports[choix].portId : '');
   });
 
+  // Zoom au clavier (Ctrl / ⌘ + « + », « - », « 0 ») : c'était le menu natif qui le fournissait
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || !(input.control || input.meta) || input.alt) return;
+    const wc = win.webContents;
+    const pas = (d) => wc.setZoomFactor(Math.max(0.5, Math.min(3, Math.round((wc.getZoomFactor() + d) * 10) / 10)));
+    if (input.key === '+' || input.key === '=') pas(0.1);
+    else if (input.key === '-' || input.key === '_') pas(-0.1);
+    else if (input.key === '0') wc.setZoomFactor(1);
+    else return;
+    event.preventDefault();
+  });
+
   nativeTheme.on('updated', () => {
     if (!win.isDestroyed()) win.setTitleBarOverlay(couleursBarre());
   });
