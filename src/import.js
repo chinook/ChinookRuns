@@ -3,6 +3,7 @@ const MIN_LIGNES = 10;   // les fichiers plus courts sont ignorés
 const importFiles = document.getElementById('importFiles');
 const importDate = document.getElementById('importDate');
 const importLieu = document.getElementById('importLieu');
+const importDossier = document.getElementById('importDossier');
 const importNotes = document.getElementById('importNotes');
 const importBtn = document.getElementById('importBtn');
 const importLog = document.getElementById('importLog');
@@ -47,6 +48,7 @@ importBtn.addEventListener('click', async () => {
           nom: f.name.replace(/\.[^.]+$/, ''),
           date: importDate.value || null,
           lieu: importLieu.value.trim() || null,
+          dossier: importDossier.value.trim() || null,
           notes: importNotes.value.trim() || null,
           fichierSource: `${f.name} (${f.size} o)`,
           entetes, colTemps, lignes

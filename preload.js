@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('api', {
     importerCourse: (course) => ipcRenderer.invoke('courses:importer', course),
     donneesCourse: (id) => ipcRenderer.invoke('courses:donnees', id),
     modifierCourse: (id, champs) => ipcRenderer.invoke('courses:modifier', id, champs),
+    deplacerCourses: (ids, dossier) => ipcRenderer.invoke('courses:deplacer', ids, dossier),
     supprimerCourse: (id) => ipcRenderer.invoke('courses:supprimer', id),
     viderCourses: () => ipcRenderer.invoke('courses:vider'),
     listeTables: () => ipcRenderer.invoke('db:tables'),

@@ -82,6 +82,8 @@
           <input type="file" id="importFiles" accept=".csv,.xlsx,.xls,.txt" multiple>
           Date <input type="date" id="importDate">
           Lieu <input type="text" id="importLieu" placeholder="Gaspésie">
+          Dossier <input type="text" id="importDossier" list="listeDossiers" placeholder="Gaspésie 2026" autocomplete="off">
+          <datalist id="listeDossiers"></datalist>
           Notes <input type="text" id="importNotes" placeholder="Conditions, remarques…">
           <button class="btn primary" id="importBtn" type="button">Importer</button>
         </div>
@@ -127,6 +129,8 @@
         <div class="row">
           <input type="search" id="courseSearch" placeholder="Rechercher une course (nom, date, lieu, notes)…" autocomplete="off">
           <span id="courseInfo"></span>
+          <input type="text" id="dossierNom" list="listeDossiers" placeholder="Nom du dossier…" autocomplete="off">
+          <button class="btn" id="dossierDeplacer" type="button" disabled>Déplacer la sélection</button>
         </div>
         <div id="listeCourses"></div>
       </div>
@@ -137,7 +141,6 @@
     <div id="out" class="hide">
       <div id="notesCourse" class="notes-course hide"></div>
       <details class="card" open><summary>Résumé</summary><div class="body"><div class="stats" id="stats"></div></div></details>
-      <details class="card" open><summary>Diagnostic de l'acquisition<span class="hint" id="findHint"></span></summary><div class="body"><div id="findings"></div></div></details>
       <details class="card" open data-plot="timeline"><summary>Évolution dans le temps</summary><div class="body">
         <div class="row">Hauteur des graphiques
         <select id="hauteurCanal" class="taille"><option value="normal">Normale</option><option value="grand">Grande</option><option value="tres">Très grande</option></select>
@@ -151,6 +154,7 @@
           <label style="font-size:13px"><input type="checkbox" id="colt" checked> colorer par temps</label></div>
         <div id="scatter"></div>
       </div></details>
+      <details class="card" open><summary>Diagnostic de l'acquisition<span class="hint" id="findHint"></span></summary><div class="body"><div id="findings"></div></div></details>
       <details class="card" open><summary>Santé de chaque canal</summary><div class="body"><div class="tw" id="health"></div></div></details>
     </div>
   </section>

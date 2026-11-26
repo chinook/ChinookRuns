@@ -42,6 +42,11 @@ function ouvrirBase() {
             ON echantillons(course_id, canal_id, n);
     `);
 
+    // bases créées avant les dossiers : on ajoute la colonne, les courses existantes restent « sans dossier »
+    if (!db.prepare('PRAGMA table_info(courses)').all().some(c => c.name === 'dossier')) {
+        db.exec('ALTER TABLE courses ADD COLUMN dossier TEXT');
+    }
+
     console.log('Base ouverte :', chemin);
 }
 
@@ -78,7 +83,7 @@ function creerCourse(nom) {
     return Number(resultat.lastInsertRowid);
 }
 
-function importerCourse({ nom, date, lieu, notes, fichierSource, entetes, colTemps, lignes }) {
+function importerCourse({ nom, date, lieu, dossier, notes, fichierSource, entetes, colTemps, lignes }) {
     const existe = db
         .prepare('SELECT id FROM courses WHERE fichier_source = ? AND date IS ?')
         .get(fichierSource, date);
@@ -87,8 +92,8 @@ function importerCourse({ nom, date, lieu, notes, fichierSource, entetes, colTem
     const importer = db.transaction(() => {
         const idCourse = Number(
             db.prepare(
-                'INSERT INTO courses (nom, date, lieu, notes, fichier_source, date_import) VALUES (?, ?, ?, ?, ?, ?)'
-            ).run(nom, date, lieu, notes ?? null, fichierSource, new Date().toISOString()).lastInsertRowid
+                'INSERT INTO courses (nom, date, lieu, dossier, notes, fichier_source, date_import) VALUES (?, ?, ?, ?, ?, ?, ?)'
+            ).run(nom, date, lieu, dossier ?? null, notes ?? null, fichierSource, new Date().toISOString()).lastInsertRowid
         );
 
         const insCanal = db.prepare('INSERT INTO canaux (course_id, nom) VALUES (?, ?)');
@@ -184,6 +189,12 @@ function modifierCourse(id, { nom, date, lieu, notes }) {
         .run(nom, date, lieu, notes ?? null, id).changes;
 }
 
+// Range des courses dans un dossier (null : les en sortir)
+function deplacerCourses(ids, dossier) {
+    const maj = db.prepare('UPDATE courses SET dossier = ? WHERE id = ?');
+    db.transaction(() => ids.forEach(id => maj.run(dossier || null, id)))();
+}
+
 function supprimerCourse(id) {
     return db.prepare('DELETE FROM courses WHERE id = ?').run(id).changes;
 }
@@ -206,5 +217,5 @@ async function viderCourses() {
 
 module.exports = {
     ouvrirBase, listeCourses, statsAccueil, creerCourse, importerCourse, listeTables, 
-    lignesTable, donneesCourse, modifierCourse, supprimerCourse, viderCourses
+    lignesTable, donneesCourse, modifierCourse, supprimerCourse, viderCourses, deplacerCourses
 };

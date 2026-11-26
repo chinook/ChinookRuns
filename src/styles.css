@@ -166,6 +166,12 @@ body.pg-base .card.fixe>.body{flex:1;min-height:0;display:flex;flex-direction:co
 body.pg-base .card.fixe>.body>*{flex:none}
 body.pg-base #dbGrid{flex:1;min-height:0;height:auto}
 body.pg-base #importLog{max-height:90px;overflow:auto}
+/* Dossiers de courses */
+#listeCourses th:first-child,#listeCourses td:first-child{width:1%}
+#dossierNom,#importDossier{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit}
+#listeCourses tr.ligne-dossier td{background:var(--bg)}
+#listeCourses tr.ligne-dossier .btn{background:none;border:0;padding:2px 0;font-weight:600;font-size:14px}
+.btn:disabled{opacity:.5;cursor:default}
 .lv-titre{display:flex;align-items:center;gap:4px 16px;flex-wrap:wrap}
 .btn.lv-demarrer,.btn.lv-demarrer:hover{background:#2e7d32;border-color:#2e7d32;color:#fff;font-weight:600}
 .btn.lv-stop,.btn.lv-stop:hover{background:#c62828;border-color:#c62828;color:#fff;font-weight:600}
