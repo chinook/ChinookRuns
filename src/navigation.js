@@ -68,12 +68,12 @@ function afficherPage(nom) {
   pages.forEach(p => p.classList.toggle('active', p.id === 'page-' + nom));
   boutonsNav.forEach(b => b.classList.toggle('active', b.dataset.page === nom));
   window.scrollTo(0, 0);
+  document.body.classList.toggle('accueil', nom === 'home');  // accueil : aussi sans défilement
+  document.body.classList.toggle('pg-base', nom === 'base');  // base de données : idem, seul le tableau défile
+  document.body.classList.toggle('plein', nom === 'live');   // page LIVE : tout tient à l'écran
 
   if (nom === 'home') majAccueil();
   if (nom === 'base') { chargerTables(); chargerCourses(); }   // chargerCourses met à jour le bouton « Vider la base »
-  if (nom === 'live') {
-    requestAnimationFrame(() => { const g = document.getElementById('lvGraph'); if (g && g.data) Plotly.Plots.resize(g); });
-  }
   if (nom === 'visualiser') {
     chargerCourses();
     // Plotly mesure 0 px dans une page cachée : on redimensionne au retour

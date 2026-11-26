@@ -1,7 +1,7 @@
 /* Page LIVE : lit les paquets reçus par le récepteur LoRa (port série USB) ou une simulation.
    Format attendu : une ligne CSV par paquet, avec une ligne d'en-tête au début
      time,wind_speed,rotor_rpm,...,seq,rssi,snr
-   Les colonnes seq / rssi / snr (facultatives) servent à la qualité de la liaison. */
+   Les colonnes seq / rssi / snr (facultatives) décrivent la liaison : elles sont enregistrées mais pas tracées. */
 
 const LV_META = /^(seq|pkt|rssi|snr)$/i;
 const LV_MAX_LIGNES = 100000;
@@ -12,12 +12,11 @@ const lv = {
   tempsLocal: false,                // true si les paquets n'ont pas de colonne time
   port: null, reader: null, fermeture: null, simTimer: null,
   cols: [], lignes: [],
-  debut: 0, dernierPaquet: 0, nbPaquets: 0, perdus: 0, derniereSeq: null,
+  debut: 0, dernierPaquet: 0,
   brut: [], dessinTimer: null,
 };
 
 const $lv = id => document.getElementById(id);
-const lvCol = nom => lv.cols.findIndex(c => c.toLowerCase() === nom);
 const LV_TEMPS = /^(time|temps_s)$/i;   // 'temps_s' = ancien nom, encore accepté
 const lvColTemps = () => lv.cols.findIndex(c => LV_TEMPS.test(c));
 
@@ -52,13 +51,6 @@ function lvLigne(texte) {
   if (!lv.debut) lv.debut = maintenant;
   if (lv.tempsLocal) nombres.unshift((maintenant - lv.debut) / 1000);
 
-  const iSeq = lvCol('seq');
-  if (iSeq >= 0) {
-    const s = nombres[iSeq];
-    if (lv.derniereSeq !== null && s > lv.derniereSeq + 1) lv.perdus += s - lv.derniereSeq - 1;
-    lv.derniereSeq = s;
-  }
-  lv.nbPaquets++;
   lv.dernierPaquet = maintenant;
   lv.lignes.push(nombres);
   if (lv.lignes.length > LV_MAX_LIGNES) lv.lignes.shift();
@@ -117,7 +109,7 @@ function lvSimuler() {
 /* ---------- Démarrage / arrêt ---------- */
 function lvDemarrer(mode) {
   lvAlerte('');
-  Object.assign(lv, { mode, debut: 0, dernierPaquet: 0, nbPaquets: 0, perdus: 0, derniereSeq: null, brut: [] });
+  Object.assign(lv, { mode, debut: 0, dernierPaquet: 0, brut: [] });
   if (mode === 'serial') { lv.cols = []; lv.lignes = []; }
   $lv('lvConnecter').classList.add('hide');
   $lv('lvSimuler').classList.add('hide');
@@ -160,12 +152,8 @@ function lvEtat() {
 function lvChips() {
   const donnees = lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c));
   $lv('lvChips').innerHTML = donnees.map((h, i) =>
-    `<label><input type="checkbox" data-h="${h}" ${i < 4 ? 'checked' : ''}><span class="dot" style="background:${css(COLORS[i % 6])}"></span>${h}</label>`).join('');
+    `<label><input type="checkbox" data-h="${h}" ${i < 6 ? 'checked' : ''}><span class="dot" style="background:${css(COLORS[i % 6])}"></span>${h}</label>`).join('');
   $lv('lvChips').querySelectorAll('input').forEach(i => i.onchange = lvGraphe);
-}
-
-function lvTuile(valeur, libelle, vieux) {
-  return `<div class="stat${vieux ? ' vieux' : ''}"><div class="v">${valeur}</div><div class="l">${libelle}</div></div>`;
 }
 
 function lvDessiner() {
@@ -174,54 +162,46 @@ function lvDessiner() {
   const vieux = lv.mode && age !== null && age > LV_SILENCE_S;
 
   if (lv.mode && age !== null) lvAlerte(vieux ? `Aucun paquet reçu depuis ${Math.round(age)} s : vérifie l'émetteur, l'antenne ou la portée.` : '');
-  $lv('lvCompteur').textContent = n ? `${lv.nbPaquets} paquets` : '';
   $lv('lvBrut').textContent = lv.brut.join('\n');
   $lv('lvEnregistrer').disabled = $lv('lvVider').disabled = !n;
   $lv('lvSession').textContent = n
     ? `${n} échantillons, ${fmt(lv.lignes[n - 1][0] - lv.lignes[0][0], 0)} s`
     : 'aucune donnée';
-  if (!n) return;
-
-  const derniere = lv.lignes[n - 1];
-  $lv('lvTuiles').innerHTML = lv.cols.map((c, j) => LV_META.test(c) || j === lvColTemps() ? '' : lvTuile(fmt(derniere[j]), c, vieux)).join('');
-
-  const iR = lvCol('rssi'), iS = lvCol('snr');
-  const total = lv.nbPaquets + lv.perdus;
-  const liaison = [];
-  if (iR >= 0) liaison.push(lvTuile(fmt(derniere[iR], 0) + ' <span class="u">dBm</span>', 'RSSI (force du signal)', vieux));
-  if (iS >= 0) liaison.push(lvTuile(fmt(derniere[iS], 1) + ' <span class="u">dB</span>', 'SNR (rapport signal/bruit)', vieux));
-  if (lvCol('seq') >= 0) liaison.push(lvTuile(total ? fmt(lv.perdus / total * 100, 1) + ' %' : '—', `paquets perdus (${lv.perdus} sur ${total})`, false));
-  liaison.push(lvTuile(age === null ? '—' : fmt(age, 1) + ' s', 'depuis le dernier paquet', false));
-  $lv('lvLiaison').innerHTML = liaison.join('');
-
-  if (!$lv('lvPause').checked) lvGraphe();
+  $lv('lvAttente').classList.toggle('hide', !!n);
+  if (n && !$lv('lvPause').checked) lvGraphe();
 }
 
+// Un graphique par signal, sur deux colonnes, qui remplissent la zone disponible (la page ne défile pas)
 function lvGraphe() {
   const sel = [...document.querySelectorAll('#lvChips input:checked')].map(i => i.dataset.h);
-  const n = sel.length;
+  const n = sel.length, H = $lv('lvGraph').clientHeight;
   if (!n || !lv.lignes.length) { Plotly.purge('lvGraph'); return; }
+  if (!H) return;                                          // page cachée
 
   const fin = lv.lignes[lv.lignes.length - 1][0], debut = fin - Number($lv('lvFenetre').value);
   let i0 = lv.lignes.length - 1;
   while (i0 > 0 && lv.lignes[i0 - 1][0] >= debut) i0--;
   const vue = lv.lignes.slice(i0), x = vue.map(l => l[0]);
 
-  const H = tailleCanal(), L = baseLayout(), gap = .03, h = (1 - gap * (n - 1)) / n;
-  const layout = { ...L, height: Math.max(260, n * H + 70), hovermode: 'x unified', showlegend: false,
-    uirevision: 'live', xaxis: { title: 'temps (s)', gridcolor: L._line, anchor: 'y', zeroline: false, range: [Math.max(debut, x[0]), fin] } };
-  $lv('lvGraph').style.height = layout.height + 'px';   // sans ça la carte garde 0 px et le graphique déborde dessus
-  const traces = [];
+  const nbCol = n > 1 ? 2 : 1, nbRang = Math.ceil(n / nbCol), L = baseLayout();
+  const ecartX = .07, ecartY = nbRang > 1 ? Math.min(.08, 34 / H) : 0;
+  const largeur = (1 - ecartX * (nbCol - 1)) / nbCol, hauteur = (1 - ecartY * (nbRang - 1)) / nbRang;
+  const layout = { ...L, height: H, margin: { l: 55, r: 12, t: 8, b: 40 }, hovermode: 'closest', showlegend: false, uirevision: 'live' };
+  const traces = [], donnees = lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c));
   sel.forEach((nom, k) => {
-    const ax = n - k, cle = ax === 1 ? 'y' : 'y' + ax;
-    layout['yaxis' + (ax === 1 ? '' : ax)] = { domain: [1 - (k + 1) * h - k * gap, 1 - k * (h + gap)],
-      title: { text: nom, font: { size: 11 } }, gridcolor: L._line, zeroline: false, automargin: true, nticks: nbGraduations(H) };
+    const rang = Math.floor(k / nbCol), col = k % nbCol, no = k ? k + 1 : '';
+    const gauche = col * (largeur + ecartX), haut = 1 - rang * (hauteur + ecartY);
+    const dernierDeColonne = k + nbCol >= n;
+    layout['xaxis' + no] = { domain: [gauche, gauche + largeur], anchor: 'y' + no, range: [Math.max(debut, x[0]), fin],
+      gridcolor: L._line, zeroline: false, showticklabels: dernierDeColonne, title: dernierDeColonne ? { text: 'temps (s)', font: { size: 11 } } : undefined };
+    layout['yaxis' + no] = { domain: [Math.max(0, haut - hauteur), haut], anchor: 'x' + no,
+      title: { text: nom, font: { size: 11 } }, gridcolor: L._line, zeroline: false, automargin: true, nticks: nbGraduations(hauteur * H) };
     const j = lv.cols.indexOf(nom);
     traces.push({ x, y: vue.map(l => l[j]), type: 'scattergl', mode: 'lines', name: nom,
-      line: { color: css(COLORS[lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c)).indexOf(nom) % 6]), width: 1.4 },
-      xaxis: 'x', yaxis: cle });
+      line: { color: css(COLORS[donnees.indexOf(nom) % 6]), width: 1.4 },
+      xaxis: 'x' + no, yaxis: 'y' + no });
   });
-  Plotly.react('lvGraph', traces, layout, { responsive: true, displaylogo: false });
+  Plotly.react('lvGraph', traces, layout, { responsive: true, displaylogo: false, displayModeBar: false });
 }
 
 /* ---------- Session ---------- */
@@ -246,9 +226,7 @@ async function lvEnregistrer() {
 
 function lvVider() {
   if (lv.lignes.length && !confirm('Effacer les données de cette session (non enregistrées) ?')) return;
-  Object.assign(lv, { lignes: [], nbPaquets: 0, perdus: 0, derniereSeq: null, debut: 0, brut: [] });
-  $lv('lvTuiles').textContent = '';
-  $lv('lvLiaison').textContent = '';
+  Object.assign(lv, { lignes: [], debut: 0, brut: [] });
   Plotly.purge('lvGraph');
   lvDessiner();
 }
@@ -259,7 +237,8 @@ $lv('lvArreter').onclick = lvArreter;
 $lv('lvEnregistrer').onclick = lvEnregistrer;
 $lv('lvVider').onclick = lvVider;
 $lv('lvFenetre').onchange = lvGraphe;
-initTaille('lvHauteur', lvGraphe);
 $lv('lvPause').onchange = lvGraphe;
-document.querySelectorAll('#page-live details[data-live-plot]').forEach(d =>
-  d.addEventListener('toggle', () => { if (d.open && $lv(d.dataset.livePlot).data) Plotly.Plots.resize($lv(d.dataset.livePlot)); }));
+$lv('lvBrutOuvrir').onclick = () => $lv('lvBrutFenetre').showModal();     // Échap ferme la fenêtre
+$lv('lvBrutFermer').onclick = () => $lv('lvBrutFenetre').close();
+$lv('lvBrutFenetre').onclick = e => { if (e.target === e.currentTarget) e.currentTarget.close(); };
+new ResizeObserver(() => { if (lv.lignes.length) lvGraphe(); }).observe($lv('lvGraph'));

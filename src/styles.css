@@ -129,7 +129,58 @@ body{padding-top:36px}
 #page-live h1 .badge{margin-top:0;font-size:12px}
 .lv-opt{font-size:13px;display:flex;align-items:center;gap:6px}
 .lv-alerte{border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:8px 12px;margin-bottom:16px;font-size:14px}
-.lv-brut{margin:0;max-height:220px;overflow:auto;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;white-space:pre}
+/* LIVE : plein écran sans défilement, les graphiques prennent la place restante */
+body.plein{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+body.plein .nav{flex:none}
+body.plein .wrap{flex:1;min-height:0;width:100%;max-width:none;display:flex;flex-direction:column;padding:12px 16px}
+body.plein #page-live{flex:1;min-height:0;display:flex;flex-direction:column}
+body.plein #page-live>*{flex:none}
+body.plein #page-live>.top{margin-bottom:10px}
+body.plein #page-live>.lv-evolution{flex:1;min-height:0;display:flex;flex-direction:column;padding:10px 12px;margin-bottom:10px}
+body.plein #page-live>.lv-session{margin-bottom:0;padding:8px 16px}
+/* Accueil : tout tient à l'écran, la photo prend la place qui reste */
+body.accueil{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+body.accueil .nav{flex:none}
+body.accueil .wrap{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:16px}
+body.accueil #page-home{flex:1;min-height:0;display:flex;flex-direction:column}
+body.accueil #page-home>*{flex:none}
+body.accueil #page-home>.hero{flex:1;min-height:0;grid-template-rows:minmax(0,1fr);margin-bottom:16px}
+body.accueil .hero-texte{max-height:100%;overflow:auto}
+body.accueil .hero-photo{height:100%;min-height:0;display:flex;flex-direction:column}
+body.accueil .hero-photo img{flex:1;min-height:0;aspect-ratio:auto}
+body.accueil #derniereCourse>.card{margin-bottom:0}
+@media (max-width:820px){body.accueil .hero-photo{display:none}}
+/* Visualiser : la liste des courses occupe toute la hauteur de l'écran (36 px barre de titre + navigation + en-têtes) */
+.carte-courses #listeCourses{height:calc(100vh - 330px);min-height:240px;max-height:none}
+/* aucune course affichée : rien sous la liste, donc pas de marge qui ferait défiler */
+.wrap:has(#page-visualiser.active #out.hide){padding-bottom:0}
+#out{scroll-margin-top:105px}
+/* Base de données : tout tient à l'écran, le tableau prend la place qui reste et défile à l'intérieur */
+body.pg-base{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+body.pg-base .nav{flex:none}
+body.pg-base .wrap{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-bottom:16px}
+body.pg-base #page-base{flex:1;min-height:0;display:flex;flex-direction:column}
+body.pg-base #page-base>*{flex:none}
+body.pg-base #page-base>.card.fixe{flex:1;min-height:0;display:flex;flex-direction:column;margin-bottom:0}
+body.pg-base .card.fixe>.body{flex:1;min-height:0;display:flex;flex-direction:column}
+body.pg-base .card.fixe>.body>*{flex:none}
+body.pg-base #dbGrid{flex:1;min-height:0;height:auto}
+body.pg-base #importLog{max-height:90px;overflow:auto}
+.lv-titre{display:flex;align-items:center;gap:4px 16px;flex-wrap:wrap}
+.btn.lv-demarrer,.btn.lv-demarrer:hover{background:#2e7d32;border-color:#2e7d32;color:#fff;font-weight:600}
+.btn.lv-stop,.btn.lv-stop:hover{background:#c62828;border-color:#c62828;color:#fff;font-weight:600}
+.btn.lv-demarrer:hover,.btn.lv-stop:hover{filter:brightness(1.15)}
+body.plein #page-live>.top{align-items:center}
+.lv-controles{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;margin-bottom:6px}
+.lv-controles .chips{margin:0}
+.lv-zone{flex:1;min-height:0;position:relative}
+#lvGraph{position:absolute;inset:0}
+.lv-attente{position:absolute;left:0;top:8px}
+.lv-attente.hide{display:none}
+.lv-dialogue{width:min(900px,92vw);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px}
+.lv-dialogue::backdrop{background:rgba(0,0,0,.4)}
+.lv-dialogue-tete{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.lv-brut{margin:0;height:60vh;overflow:auto;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;white-space:pre}
 .lv-session{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px}
 .stat.vieux .v{color:var(--muted)}
 .stat .u{font-size:12px;color:var(--muted);font-weight:400}

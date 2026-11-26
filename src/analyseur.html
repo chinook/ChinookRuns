@@ -121,7 +121,7 @@
       </div>
     </header>
     
-    <details class="card" open>
+    <details class="card carte-courses" open>
       <summary>Courses enregistrées</summary>
       <div class="body">
         <div class="row">
@@ -158,38 +158,39 @@
   <!-- ============ LIVE ============ -->
   <section class="page" id="page-live">
     <header class="top">
-      <div>
+      <div class="lv-titre">
         <h1>LIVE <span class="badge b-info" id="lvEtat">DÉCONNECTÉ</span></h1>
         <p class="sub">Télémétrie en temps réel : le récepteur LoRa branché au PC envoie chaque paquet reçu par USB.</p>
       </div>
       <div class="tools">
         <label class="lv-opt">Vitesse <select id="lvBaud"><option>9600</option><option>57600</option><option selected>115200</option><option>230400</option></select></label>
         <button class="btn primary" id="lvConnecter" type="button">Connecter le récepteur</button>
-        <button class="btn" id="lvSimuler" type="button">Simuler</button>
-        <button class="btn hide" id="lvArreter" type="button">Arrêter</button>
+        <button class="btn lv-demarrer" id="lvSimuler" type="button">Simuler</button>
+        <button class="btn lv-stop hide" id="lvArreter" type="button">Arrêter</button>
+        <button class="btn" id="lvBrutOuvrir" type="button">Données brutes</button>
       </div>
     </header>
 
     <div id="lvAlerte" class="lv-alerte hide"></div>
 
-    <details class="card" open><summary>Dernières valeurs<span class="hint" id="lvCompteur"></span></summary>
-      <div class="body"><div class="stats" id="lvTuiles"><span class="dead">En attente de données… connecte le récepteur ou lance la simulation.</span></div></div></details>
-
-    <details class="card" open><summary>Qualité de la liaison</summary>
-      <div class="body"><div class="stats" id="lvLiaison"></div></div></details>
-
-    <details class="card" open data-live-plot="lvGraph"><summary>Évolution en direct</summary><div class="body">
-      <div class="row">Fenêtre
-        <select id="lvFenetre"><option value="60">1 min</option><option value="120" selected>2 min</option><option value="300">5 min</option><option value="900">15 min</option></select>
-        Hauteur <select id="lvHauteur" class="taille"><option value="normal">Normale</option><option value="grand">Grande</option><option value="tres">Très grande</option></select>
+    <div class="card lv-evolution">
+      <div class="lv-controles">
+        <b>Évolution en direct</b>
+        <label class="lv-opt">Fenêtre
+          <select id="lvFenetre"><option value="60">1 min</option><option value="120" selected>2 min</option><option value="300">5 min</option><option value="900">15 min</option></select></label>
         <label class="lv-opt"><input type="checkbox" id="lvPause"> figer l'affichage</label>
+        <div class="chips" id="lvChips"></div>
       </div>
-      <div class="chips" id="lvChips"></div>
-      <div id="lvGraph"></div>
-    </div></details>
+      <div class="lv-zone">
+        <div id="lvGraph"></div>
+        <span class="dead lv-attente" id="lvAttente">En attente de données… connecte le récepteur ou lance la simulation.</span>
+      </div>
+    </div>
 
-    <details class="card"><summary>Données brutes reçues</summary>
-      <div class="body"><pre id="lvBrut" class="lv-brut"></pre></div></details>
+    <dialog id="lvBrutFenetre" class="lv-dialogue">
+      <div class="lv-dialogue-tete"><b>Données brutes reçues</b><button class="btn" id="lvBrutFermer" type="button">Fermer</button></div>
+      <pre id="lvBrut" class="lv-brut"></pre>
+    </dialog>
 
     <div class="card lv-session">
       <div><b>Session</b> <span id="lvSession" class="dead">aucune donnée</span></div>
