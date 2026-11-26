@@ -9,7 +9,7 @@ Elle lit les fichiers CSV enregistrés sur la carte SD du véhicule, les conserv
 - **Accueil** : présentation du club, photo du véhicule, chiffres des courses enregistrées et dernière course. Le logo de la barre de navigation ramène toujours ici.
 - **Base de données** : import d'un ou plusieurs fichiers CSV / XLSX à la fois (avec la date, le lieu, le dossier et des notes), puis explorateur en lecture seule des tables avec barre de recherche dans toutes les colonnes.
 - **Visualiser une course** : liste des courses classées en dossiers, avec recherche (nom, date, lieu, dossier, notes) et actions Afficher, Modifier et Supprimer. L'affichage montre les notes de la course, le résumé, l'évolution dans le temps, la relation entre deux mesures, le diagnostic de l'acquisition et la santé de chaque canal.
-- **LIVE** : télémétrie en direct reçue d'un récepteur LoRa branché en USB (port série), ou simulée. Un graphique par signal sur deux colonnes, données brutes dans une fenêtre à part, et enregistrement de la session dans la base. Pas encore essayée avec le vrai récepteur.
+- **LIVE** : télémétrie en direct reçue d'un récepteur LoRa branché en USB (port série), ou simulée. Un graphique par signal sur deux colonnes (glisser pour zoomer, double-clic pour revenir au zoom d'origine), données brutes dans une fenêtre à part, et enregistrement de la session dans la base. Pas encore essayée avec le vrai récepteur.
 
 L'application s'ouvre en fenêtre maximisée. Ses couleurs sont celles du club (Bleu Nuit, Bleu Vent, Sable), en thème clair ou sombre selon le réglage de Windows. La barre de titre porte les menus Fichier, Édition et Affichage ; Ctrl + « + » / « - » / « 0 » règle le zoom.
 

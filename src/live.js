@@ -14,6 +14,7 @@ const lv = {
   cols: [], lignes: [],
   debut: 0, dernierPaquet: 0,
   brut: [], dessinTimer: null,
+  zoom: {}, glisse: false, ecouteZoom: false,   // zoom choisi à la souris, par axe (vide : suit les données)
 };
 
 const $lv = id => document.getElementById(id);
@@ -153,7 +154,7 @@ function lvChips() {
   const donnees = lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c));
   $lv('lvChips').innerHTML = donnees.map((h, i) =>
     `<label><input type="checkbox" data-h="${h}" ${i < 6 ? 'checked' : ''}><span class="dot" style="background:${css(COLORS[i % 6])}"></span>${h}</label>`).join('');
-  $lv('lvChips').querySelectorAll('input').forEach(i => i.onchange = lvGraphe);
+  $lv('lvChips').querySelectorAll('input').forEach(i => i.onchange = () => { lv.zoom = {}; lvGraphe(); });
 }
 
 function lvDessiner() {
@@ -168,14 +169,20 @@ function lvDessiner() {
     ? `${n} échantillons, ${fmt(lv.lignes[n - 1][0] - lv.lignes[0][0], 0)} s`
     : 'aucune donnée';
   $lv('lvAttente').classList.toggle('hide', !!n);
-  if (n && !$lv('lvPause').checked) lvGraphe();
+  if (n && !$lv('lvPause').checked && !lv.glisse) lvGraphe();   // pas de redessin pendant qu'on trace un zoom
+}
+
+function lvEffacer() {
+  Plotly.purge('lvGraph');
+  lv.ecouteZoom = false;
+  lv.zoom = {};
 }
 
 // Un graphique par signal, sur deux colonnes, qui remplissent la zone disponible (la page ne défile pas)
 function lvGraphe() {
   const sel = [...document.querySelectorAll('#lvChips input:checked')].map(i => i.dataset.h);
   const n = sel.length, H = $lv('lvGraph').clientHeight;
-  if (!n || !lv.lignes.length) { Plotly.purge('lvGraph'); return; }
+  if (!n || !lv.lignes.length) { lvEffacer(); return; }
   if (!H) return;                                          // page cachée
 
   const fin = lv.lignes[lv.lignes.length - 1][0], debut = fin - Number($lv('lvFenetre').value);
@@ -184,24 +191,37 @@ function lvGraphe() {
   const vue = lv.lignes.slice(i0), x = vue.map(l => l[0]);
 
   const nbCol = n > 1 ? 2 : 1, nbRang = Math.ceil(n / nbCol), L = baseLayout();
-  const ecartX = .07, ecartY = nbRang > 1 ? Math.min(.08, 34 / H) : 0;
+  const ecartX = .07, ecartY = nbRang > 1 ? Math.min(.12, 42 / H) : 0;
   const largeur = (1 - ecartX * (nbCol - 1)) / nbCol, hauteur = (1 - ecartY * (nbRang - 1)) / nbRang;
-  const layout = { ...L, height: H, margin: { l: 55, r: 12, t: 8, b: 40 }, hovermode: 'closest', showlegend: false, uirevision: 'live' };
+  const layout = { ...L, height: H, margin: { l: 55, r: 12, t: 8, b: 40 }, hovermode: 'closest', showlegend: false, };
   const traces = [], donnees = lv.cols.filter(c => !LV_META.test(c) && !LV_TEMPS.test(c));
   sel.forEach((nom, k) => {
     const rang = Math.floor(k / nbCol), col = k % nbCol, no = k ? k + 1 : '';
     const gauche = col * (largeur + ecartX), haut = 1 - rang * (hauteur + ecartY);
     const dernierDeColonne = k + nbCol >= n;
     layout['xaxis' + no] = { domain: [gauche, gauche + largeur], anchor: 'y' + no, range: [Math.max(debut, x[0]), fin],
-      gridcolor: L._line, zeroline: false, showticklabels: dernierDeColonne, title: dernierDeColonne ? { text: 'temps (s)', font: { size: 11 } } : undefined };
+      gridcolor: L._line, zeroline: false, showticklabels: true, ticks: 'outside', title: dernierDeColonne ? { text: 'temps (s)', font: { size: 11 } } : undefined };
     layout['yaxis' + no] = { domain: [Math.max(0, haut - hauteur), haut], anchor: 'x' + no,
       title: { text: nom, font: { size: 11 } }, gridcolor: L._line, zeroline: false, automargin: true, nticks: nbGraduations(hauteur * H) };
+    // un axe zoomé garde les bornes choisies malgré les nouvelles données
+    for (const axe of ['xaxis' + no, 'yaxis' + no]) if (lv.zoom[axe]) layout[axe].range = [...lv.zoom[axe]];
     const j = lv.cols.indexOf(nom);
     traces.push({ x, y: vue.map(l => l[j]), type: 'scattergl', mode: 'lines', name: nom,
       line: { color: css(COLORS[donnees.indexOf(nom) % 6]), width: 1.4 },
       xaxis: 'x' + no, yaxis: 'y' + no });
   });
-  Plotly.react('lvGraph', traces, layout, { responsive: true, displaylogo: false, displayModeBar: false });
+  Plotly.react('lvGraph', traces, layout, { responsive: true, displaylogo: false, displayModeBar: false, showTips: false });
+  if (!lv.ecouteZoom) {                                      // à refaire après un Plotly.purge, qui retire les écouteurs
+    lv.ecouteZoom = true;
+    $lv('lvGraph').on('plotly_relayout', e => {
+      for (const [cle, v] of Object.entries(e)) {
+        const m = cle.match(/^([xy]axis\d*)\.range\[([01])\]$/);
+        if (m) (lv.zoom[m[1]] ??= [...$lv('lvGraph')._fullLayout[m[1]].range])[m[2]] = v;
+      }
+    });
+    // différé : le retour de Plotly après un double-clic ne doit pas être retenu comme un zoom
+    $lv('lvGraph').on('plotly_doubleclick', () => setTimeout(() => { lv.zoom = {}; lvGraphe(); }));
+  }
 }
 
 /* ---------- Session ---------- */
@@ -227,7 +247,7 @@ async function lvEnregistrer() {
 function lvVider() {
   if (lv.lignes.length && !confirm('Effacer les données de cette session (non enregistrées) ?')) return;
   Object.assign(lv, { lignes: [], debut: 0, brut: [] });
-  Plotly.purge('lvGraph');
+  lvEffacer();
   lvDessiner();
 }
 
@@ -236,7 +256,9 @@ $lv('lvSimuler').onclick = lvSimuler;
 $lv('lvArreter').onclick = lvArreter;
 $lv('lvEnregistrer').onclick = lvEnregistrer;
 $lv('lvVider').onclick = lvVider;
-$lv('lvFenetre').onchange = lvGraphe;
+$lv('lvFenetre').onchange = () => { lv.zoom = {}; lvGraphe(); };
+$lv('lvGraph').addEventListener('pointerdown', () => { lv.glisse = true; }, true);
+window.addEventListener('pointerup', () => { lv.glisse = false; }, true);
 $lv('lvPause').onchange = lvGraphe;
 $lv('lvBrutOuvrir').onclick = () => $lv('lvBrutFenetre').showModal();     // Échap ferme la fenêtre
 $lv('lvBrutFermer').onclick = () => $lv('lvBrutFenetre').close();
