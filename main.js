@@ -6,8 +6,8 @@ const db = require('./db');
 // (le thème de l'interface suit celui de Windows, comme dans styles.css)
 const HAUTEUR_BARRE = 36;
 const couleursBarre = () => (nativeTheme.shouldUseDarkColors
-  ? { color: '#181d24', symbolColor: '#e8ebef', height: HAUTEUR_BARRE }
-  : { color: '#ffffff', symbolColor: '#1b1f24', height: HAUTEUR_BARRE });
+  ? { color: '#162f57', symbolColor: '#e8ded4', height: HAUTEUR_BARRE }
+  : { color: '#f5f0eb', symbolColor: '#0f2548', height: HAUTEUR_BARRE });
 
 function createWindow() {
   const win = new BrowserWindow({
